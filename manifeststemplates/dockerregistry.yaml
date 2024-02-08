@@ -1,0 +1,38 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: regcred
+  namespace: cluster_env
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  destination:
+    namespace: cluster_env
+    server: https://kubernetes.default.svc
+  project: cluster_env
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    retry:
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 3m0s
+      limit: 2
+  source:
+    chart: app
+    repoURL: https://helm.gpkg.io/project-template
+    targetRevision: 0.4.0
+    helm:
+      values: |+
+
+        externalSecret:
+          enabled: true
+          refreshInterval: 5s
+          secrets:   
+            regcreds:
+              name: regcred
+              type: kubernetes.io/dockerconfigjson
+              dataFrom:
+                key: secret/regcred
