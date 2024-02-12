@@ -44,11 +44,11 @@ read -n 1 -s -r -p "Press any key to continue "
 
 # 1st piece
 
-mkdir -p fullrun/templates
+mkdir -p qa-fullrun/AWS/templates
 
-mkdir -p fullrun/templates2
+mkdir -p qa-fullrun/AWS/templates2
 
-curl https://raw.githubusercontent.com/GlueOps/terraform-module-cloud-aws-kubernetes-cluster/main/tests/main.tf -o fullrun/templates/main.tf 
+curl https://raw.githubusercontent.com/GlueOps/terraform-module-cloud-aws-kubernetes-cluster/main/tests/main.tf -o qa-fullrun/AWS/templates/main.tf 
 
 cd /workspaces/glueops/$CLUSTER
 
@@ -80,7 +80,7 @@ render_templates() {
 }
 
 # Call the function with the template and target directories
-render_templates "../../../fullrun/templates" 
+render_templates "../../../qa-fullrun/AWS/templates" 
 
 cd /workspaces/glueops/$CLUSTER
 
@@ -108,7 +108,7 @@ kubectl delete daemonset -n kube-system aws-node
 
 cd /workspaces/glueops/$CLUSTER
 
-curl https://raw.githubusercontent.com/wiki/GlueOps/terraform-module-cloud-aws-kubernetes-cluster/calico.yaml.md -o ../fullrun/templates2/calico.yaml 
+curl https://raw.githubusercontent.com/wiki/GlueOps/terraform-module-cloud-aws-kubernetes-cluster/calico.yaml.md -o ../qa-fullrun/AWS/templates2/calico.yaml 
 
 render_templates2() {
   local template_dir="$1"
@@ -131,7 +131,7 @@ render_templates2() {
   echo "calico.yaml is successfully created in $target_dir."
 }
 
-render_templates2 "../fullrun/templates2" 
+render_templates2 "../qa-fullrun/AWS/templates2" 
 
 # 3d piece
 
@@ -296,7 +296,7 @@ render_templates() {
 }
 
 # Call the function with the template and target directories
-render_templates "../../fullrun/manifeststemplates" 
+render_templates "../../qa-fullrun/AWS/manifeststemplates" 
 
 sleep 5
 
