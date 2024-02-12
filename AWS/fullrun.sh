@@ -525,3 +525,117 @@ git commit
 read -n 1 -s -r -p " Press any key to continue if you agree to push the changes "
 
 git push
+
+echo -e "\n1. Move to https://argocd.$CLUSTER >> captain-manifests. There should be 4 new healthy manifests (2nd row).\n2. Move to https://aws.amazon.com/ .\n3. Sign In to the Concole.\n4. Click on the key extention (right top corner of the browser) and switch to "glueops-captain-paris" account.\n5. Enter to WAF & Shield (can find in search as an option) >> Web ACLs (left part of the screen).\n6. Select global region (dropdown in the middle).\n There should be 4.\n1. Click for eg. on the primary one >> rules >> too-many-requests-per-source-ip >> pay attention to rate limit (100)  "
+
+read -n 1 -s -r -p " Press any key to continue if you everything above is okay and you are ready "
+
+read -p "Enter new limit(for eg 110) " rtlmt
+
+read -p "Enter the new name to note, by whom it's provided " nmprvd
+
+sed -i -e "106s/100/$rtlmt/g; 63s/GlueOps/$nmprvd/g" webacl.yaml
+
+git status
+
+read -n 1 -s -r -p " Press any key to continue if you agree to add all the changes "
+
+git add -A
+
+git status
+
+read -n 1 -s -r -p " Press any key to continue if you agree to commit "
+
+git commit
+
+read -n 1 -s -r -p " Press any key to continue if you agree to push the changes "
+
+git push
+
+echo -e "\n1. Back to Amazon.\n2. Refresh and check wheter ratelimit is updated.\n3. Move back to general webacl's description and check whether description is changed  "
+
+read -n 1 -s -r -p " Press any key to continue "
+
+rm webacl.yaml
+
+git status
+
+read -n 1 -s -r -p " Press any key to continue if you agree to add all the changes "
+
+git add -A
+
+git status
+
+read -n 1 -s -r -p " Press any key to continue if you agree to commit "
+
+git commit
+
+read -n 1 -s -r -p " Press any key to continue if you agree to push the changes "
+
+git push
+
+echo -e "\n1. Go to Amazon.\n2. Refresh and ensure that web ACLs are deleted  "
+
+read -n 1 -s -r -p " Press any key to continue "
+
+curl https://raw.githubusercontent.com/GlueOps/metacontroller-operator-waf-web-acl/main/manifests/webacls.yaml -o webacl.yaml
+
+git status
+
+read -n 1 -s -r -p " Press any key to continue if you agree to add all the changes "
+
+git add -A
+
+git status
+
+read -n 1 -s -r -p " Press any key to continue if you agree to commit "
+
+git commit
+
+read -n 1 -s -r -p " Press any key to continue if you agree to push the changes "
+
+git push
+
+echo -e "\n1. Move to https://github.com/example-tenant/deployment-configurations/blob/main/apps/waf-test/envs/prod/values.yaml.\n2. Delete comments from rows 44-61.\n3. Commit changes >> Commit directly to the main branch.\n4. Move to https://argocd.$CLUSTER >> glueops-core/captain-manifests >> waf-test-prod.\n5. Check whether 3 wafs are appeared. "
+
+read -n 1 -s -r -p " Press any key to continue "
+
+echo -e "\n1. Move to Amazon.\n2. ACM in search (certificate manager).\n3. List certificates.\n4. Change region to us-east-1 (N. Virginia).\n5. Enter to those, which starts from 1 (according to firstwaf in ArgoCD).\n6. Compare copied CNAME name and value with AroCD's.  "
+
+read -n 1 -s -r -p " Press any key to continue "
+
+echo -e "\n1. Copy CNAME name in ArgoCD (for eg. inside firstwaf >> all line 34).\n2. Move to the codespace.\n3. Split terminal.\n4. Use dig coppied text command. \n5. Compare name and value with ArgoCD's.\n6. Close splited terminal.  "
+
+read -n 1 -s -r -p " Press any key to continue "
+
+echo -e "\n1. Move back to Amazon.\n2. Search "cloudfront" (there should be 2 issued distributions according to WAF's).  "
+
+read -n 1 -s -r -p " Press any key to continue "
+
+unset nwcstcrt
+
+until [ "$nwcstcrt" == "yes" ] || [ "$nwcstcrt" == "no" ]; do
+  read -p "Do you want to create new custom certificate? Type 'yes' or 'no': " nwcstcrt
+
+  if [ "$nwcstcrt" != "yes" ] && [ "$nwcstcrt" != "no" ]; then
+    echo "Invalid input. Please enter 'yes' or 'no'."
+  fi
+done
+
+if [ "$update" != "no" ]; then
+  echo -e " Several hints for actions below:\n1. First input - enter working email. Second input - type yes. Third input - type no. Fourth input - *.paris.waf.qa-glueops.com.\n2. After fourth input is entered - copy value that has appeared as output.\n3. Move to AWS >> change account to qa-shared-resources >> search route53 >> hosted zones >> paris.waf.qa-glueops.com.\n4. Find those record name, which is the same as in codespace output.\n5. Select it >> Edit record >> paste value in value field >> save.\n6. Move back to codespace.\n7. Copy name fully in output.\n8. Split terminal.\n9. dig txt (copied DNS txt record) in the new terminal >> compare the values.\n10. Exit splited terminal, finally press enter. "
+  read -n 1 -s -r -p " Press any key to  start performing steps. "
+  sudo certbot certonly --manual --preferred-challenges dns
+  sudo ls /etc/letsencrypt/live/paris.waf.qa-glueops.com/
+  echo -e "\n1. Enter to https://vault.$CLUSTER with editor role.\n2. Secret >> Create secret:\n Path for this secret: ssl-cert/wildcard.paris.waf.qa-glueops.com\n key: CERTIFICATE\n value: get when ready "
+  read -n 1 -s -r -p " Press any key to get the value "
+  sudo cat /etc/letsencrypt/live/paris.waf.qa-glueops.com/cert.pem
+  echo -e "\n1. Save. \n2. Create new version:\n key: PRIVATE_KEY (add not replace old value)\n value: get when ready"
+  read -n 1 -s -r -p " Press any key to get the value "
+  sudo cat /etc/letsencrypt/live/paris.waf.qa-glueops.com/privkey.pem
+  echo -e "\n key: CERTIFICATE_CHAIN\n value: get when ready "
+  read -n 1 -s -r -p " Press any key to get the value "
+  sudo cat /etc/letsencrypt/live/paris.waf.qa-glueops.com/chain.pem
+  echo -e "\n Save "
+  read -n 1 -s -r -p " Press any key to continue "
+fi
