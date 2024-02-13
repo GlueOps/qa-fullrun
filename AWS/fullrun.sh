@@ -4,7 +4,7 @@ yolo
 
 gh repo clone GlueOps/qa-tools
 
-read -p "Enter your cluster name: " CLUSTER
+read -p "Enter your captain domain: " CLUSTER
 
 # Split cluster name to different parts
 
