@@ -2,9 +2,23 @@
 
 yolo
 
-gh repo clone GlueOps/qa-tools
+unset FULLTENANT
+
+unset CLUSTER
+
+read -p "Enter your full tenant name: " FULLTENANT
 
 read -p "Enter your captain domain: " CLUSTER
+
+unset awsacc
+
+unset wafacc
+
+read -p "Enter your AWS account credentials: " awsacc
+
+read -p "Enter your WAF account credentials: " wafacc
+
+IFS='-' read -r compname rank city <<< "$wafacc"
 
 # Split cluster name to different parts
 
@@ -12,7 +26,7 @@ IFS='.' read -r ENV TENANT DOMAIN <<< "$CLUSTER"
 
 gh repo clone development-captains/$CLUSTER
 
-gh repo clone example-tenant/deployment-configurations
+gh repo clone $FULLTENANT/deployment-configurations
 
 cd deployment-configurations
 
@@ -23,9 +37,9 @@ cd ..
 # Hints
 echo "1. Move to https://github.com/development-captains/$CLUSTER , find "AWS" >> "Deploy Kubernetes" , click on "Launch a CloudShell" hyperlink "
 echo "2. Move to https://github.com/development-captains/$CLUSTER in another tab , find "AWS" >> "Deploy Kubernetes" , execute bash account-setup.sh command in CloudShell "
-echo "3. Enter AWS account name (glueops-captain-madrid) >> Enter another AWS account name (glueops-captain-paris) "
+echo "3. Enter AWS account name ($awsacc) >> Enter another AWS account name ($wafacc) "
 echo "4. Move to codespace >> Create .env file by following hints from CloudShell (add all content between 1st and last rows) and save it in "$CLUSTER" repo "
-echo "5. Update tenant_pluto.tf (https://github.com/internal-GlueOps/development-infrastructure/blob/main/tenants/pluto/tf/tenant_pluto.tf) by inserting aws_access_key and aws_secret values from CloudShell , create new branch. "
+echo "5. Update tenant.tf (https://github.com/internal-GlueOps/development-infrastructure/blob/main/tenants/$TENANT/tf/tenant.tf) by inserting aws_access_key and aws_secret values from CloudShell , create new branch. "
 echo "6. Confirm changes in Terraform "
 
 read -n 1 -s -r -p "Press any key to continue when all actions above are done"
@@ -329,7 +343,7 @@ until [ "$update" == "yes" ] || [ "$update" == "no" ]; do
 done
 
 if [ "$update" != "no" ]; then
-  echo -e "1. Move to https://github.com/GlueOps/terraform-module-cloud-multy-prerequisites. \n2. Select the required version (usually from branch). \n3. Move to https://github.com/internal-GlueOps/development-infrastructure/blob/main/tenants/pluto/tf/tenant_pluto.tf .\n4. Insert verison into the 2nd row of the code (after ref=).\n5. Save changes and manage them in Terraform."
+  echo -e "1. Move to https://github.com/GlueOps/terraform-module-cloud-multy-prerequisites. \n2. Select the required version (usually from branch). \n3. Move to https://github.com/internal-GlueOps/development-infrastructure/blob/main/tenants/$TENANT/tf/tenant.tf .\n4. Insert verison into the 2nd row of the code (after ref=).\n5. Save changes and manage them in Terraform."
   read -n 1 -s -r -p " Press any key to continue if all actions above are completed successfully"
   git pull
   cd ..
@@ -371,7 +385,7 @@ echo -e "1. Copy output, that has appeared above. \n2. Move to https://vault.$CL
 
 read -n 1 -s -r -p " Press any key to continue if all actions above are performed without issues"
 
-echo -e " Add secret to App. \n1. https://vault.$CLUSTER/ >> secret/ >> create secret: \n Path for this secret: app-pluto \n Key: GREETING_MESSAGE \n value: anything.\n2. Check wheter is value is visible in https://argocd.$CLUSTER (enter to captain-manifests app >> "Hello-world-env-vars-qa-public"). If it has degraded status - delete the pod and wait untill it refreshes.\n3. Go to Vault again >> create the new version of the secret >> enter another value.\n4. Go to Agro CD >> delete pod >> check changes. 
+echo -e " Add secret to App. \n1. https://vault.$CLUSTER/ >> secret/ >> create secret: \n Path for this secret: hello-world-env-vars-app \n Key: GREETING_MESSAGE \n value: anything.\n2. Check wheter is value is visible in https://argocd.$CLUSTER (enter to captain-manifests app >> "Hello-world-env-vars-qa-public"). If it has degraded status - delete the pod and wait untill it refreshes.\n3. Go to Vault again >> create the new version of the secret >> enter another value.\n4. Go to Agro CD >> delete pod >> check changes. 
 If the page conten't is not changing - delete pod (pod must be new one)  "
 
 read -n 1 -s -r -p " Press any key to continue if all actions above are performed without issues"
@@ -391,7 +405,7 @@ NEW_BRANCH="AntonBilyk-patch-1"
 FILE_PATH="index.html" # Change the file path if necessary
 
 # Clone a repository using the GitHub CLI
-gh repo clone example-tenant/wordpress
+gh repo clone $FULLTENANT/wordpress
 cd wordpress
 
 # Enter new content on the page
@@ -425,7 +439,7 @@ gh pr merge $PR_NUMBER --merge -d
 echo "Pull Request #${PR_NUMBER} is successfully merged and ${NEW_BRANCH} is deleted"
 
 # Instruct the user to wait for GitHub Actions to complete
-echo "Please follow https://github.com/example-tenant/wordpress/actions to ensure the completion of GitHub Actions."
+echo "Please follow https://github.com/$FULLTENANT/wordpress/actions to ensure the completion of GitHub Actions."
 
 # Wait for user input to continue
 read -n 1 -s -r -p "Press any key to continue after confirming that all actions have completed successfully."
@@ -434,7 +448,7 @@ read -n 1 -s -r -p "Press any key to continue after confirming that all actions 
 echo "Continuing script..."
 
 # Comparing values
-echo "Compare the new tag from the last GlueOps bot message here (https://github.com/example-tenant/deployment-configurations) with the last commit tag here (https://github.com/example-tenant/wordpress) "
+echo "Compare the new tag from the last GlueOps bot message here (https://github.com/$FULLTENANT/deployment-configurations) with the last commit tag here (https://github.com/$FULLTENANT/wordpress) "
 
 # Wait for user input to continue
 read -n 1 -s -r -p "Press any key to continue in the case when tags are the same"
@@ -468,7 +482,7 @@ gh release create $TAG_NAME --title "$TAG_NAME" --target main
 echo "Release $TAG_NAME created with tag $TAG_NAME"
 
 # Instruct the user to wait for GitHub Actions to complete
-echo "Please follow https://github.com/example-tenant/wordpress/actions to ensure the completion of GitHub Actions."
+echo "Please follow https://github.com/$FULLTENANT/wordpress/actions to ensure the completion of GitHub Actions."
 
 # Wait for user input to continue
 read -n 1 -s -r -p "Press any key to continue after confirming that all actions have completed successfully."
@@ -526,7 +540,7 @@ read -n 1 -s -r -p " Press any key to continue if you agree to push the changes 
 
 git push
 
-echo -e "\n1. Move to https://argocd.$CLUSTER >> captain-manifests. There should be 4 new healthy manifests (2nd row).\n2. Move to https://aws.amazon.com/ .\n3. Sign In to the Concole.\n4. Click on the key extention (right top corner of the browser) and switch to "glueops-captain-paris" account.\n5. Enter to WAF & Shield (can find in search as an option) >> Web ACLs (left part of the screen).\n6. Select global region (dropdown in the middle).\n There should be 4.\n1. Click for eg. on the primary one >> rules >> too-many-requests-per-source-ip >> pay attention to rate limit (100)  "
+echo -e "\n1. Move to https://argocd.$CLUSTER >> captain-manifests. There should be 4 new healthy manifests (2nd row).\n2. Move to https://aws.amazon.com/ .\n3. Sign In to the Concole.\n4. Click on the key extention (right top corner of the browser) and switch to "$wafacc" account.\n5. Enter to WAF & Shield (can find in search as an option) >> Web ACLs (left part of the screen).\n6. Select global region (dropdown in the middle).\n There should be 4.\n1. Click for eg. on the primary one >> rules >> too-many-requests-per-source-ip >> pay attention to rate limit (100)  "
 
 read -n 1 -s -r -p " Press any key to continue if you everything above is okay and you are ready "
 
@@ -596,7 +610,7 @@ read -n 1 -s -r -p " Press any key to continue if you agree to push the changes 
 
 git push
 
-echo -e "\n1. Move to https://github.com/example-tenant/deployment-configurations/blob/main/apps/waf-test/envs/prod/values.yaml.\n2. Delete comments from rows 44-61.\n3. Commit changes >> Commit directly to the main branch.\n4. Move to https://argocd.$CLUSTER >> glueops-core/captain-manifests >> waf-test-prod.\n5. Check whether 3 wafs are appeared. "
+echo -e "\n1. Move to https://github.com/$FULLTENANT/deployment-configurations/blob/main/apps/waf-test/envs/prod/values.yaml.\n2. Delete comments from rows 44-61.\n3. Commit changes >> Commit directly to the main branch.\n4. Move to https://argocd.$CLUSTER >> glueops-core/captain-manifests >> waf-test-prod.\n5. Check whether 3 wafs are appeared. "
 
 read -n 1 -s -r -p " Press any key to continue "
 
@@ -623,24 +637,24 @@ until [ "$nwcstcrt" == "yes" ] || [ "$nwcstcrt" == "no" ]; do
 done
 
 if [ "$update" != "no" ]; then
-  echo -e " Several hints for actions below:\n1. First input - enter working email. Second input - type yes. Third input - type no. Fourth input - *.paris.waf.qa-glueops.com.\n2. After fourth input is entered - copy value that has appeared as output.\n3. Move to AWS >> change account to qa-shared-resources >> search route53 >> hosted zones >> paris.waf.qa-glueops.com.\n4. Find those record name, which is the same as in codespace output.\n5. Select it >> Edit record >> paste value in value field >> save.\n6. Move back to codespace.\n7. Copy name fully in output.\n8. Split terminal.\n9. dig txt (copied DNS txt record) in the new terminal >> compare the values.\n10. Exit splited terminal, finally press enter. "
+  echo -e " Several hints for actions below:\n1. First input - enter working email. Second input - type yes. Third input - type no. Fourth input - *.$city.waf.qa-glueops.com.\n2. After fourth input is entered - copy value that has appeared as output.\n3. Move to AWS >> change account to qa-shared-resources >> search route53 >> hosted zones >> $city.waf.qa-glueops.com.\n4. Find those record name, which is the same as in codespace output.\n5. Select it >> Edit record >> paste value in value field >> save.\n6. Move back to codespace.\n7. Copy name fully in output.\n8. Split terminal.\n9. dig txt (copied DNS txt record) in the new terminal >> compare the values.\n10. Exit splited terminal, finally press enter. "
   read -n 1 -s -r -p " Press any key to  start performing steps. "
   sudo certbot certonly --manual --preferred-challenges dns
-  sudo ls /etc/letsencrypt/live/paris.waf.qa-glueops.com/
-  echo -e "\n1. Enter to https://vault.$CLUSTER with editor role.\n2. Secret >> Create secret:\n Path for this secret: ssl-cert/wildcard.paris.waf.qa-glueops.com\n key: CERTIFICATE\n value: get when ready "
+  sudo ls /etc/letsencrypt/live/$city.waf.qa-glueops.com/
+  echo -e "\n1. Enter to https://vault.$CLUSTER with editor role.\n2. Secret >> Create secret:\n Path for this secret: ssl-cert/wildcard.$city.waf.qa-glueops.com\n key: CERTIFICATE\n value: get when ready "
   read -n 1 -s -r -p " Press any key to get the value "
-  sudo cat /etc/letsencrypt/live/paris.waf.qa-glueops.com/cert.pem
+  sudo cat /etc/letsencrypt/live/$city.waf.qa-glueops.com/cert.pem
   echo -e "\n1. Save. \n2. Create new version:\n key: PRIVATE_KEY (add not replace old value)\n value: get when ready"
   read -n 1 -s -r -p " Press any key to get the value "
-  sudo cat /etc/letsencrypt/live/paris.waf.qa-glueops.com/privkey.pem
+  sudo cat /etc/letsencrypt/live/$city.waf.qa-glueops.com/privkey.pem
   echo -e "\n key: CERTIFICATE_CHAIN\n value: get when ready "
   read -n 1 -s -r -p " Press any key to get the value "
-  sudo cat /etc/letsencrypt/live/paris.waf.qa-glueops.com/chain.pem
+  sudo cat /etc/letsencrypt/live/$city.waf.qa-glueops.com/chain.pem
   echo -e "\n Save "
   read -n 1 -s -r -p " Press any key to continue "
 fi
 
-echo -e "\n1. Enter to https://vault.$CLUSTER with editor role.\n2. Secret >> Create secret:\n Path for this secret: ssl-cert/wildcard.paris.waf.qa-glueops.com\n key: CERTIFICATE\n value: copy from where it is saved "
+echo -e "\n1. Enter to https://vault.$CLUSTER with editor role.\n2. Secret >> Create secret:\n Path for this secret: ssl-cert/wildcard.$city.waf.qa-glueops.com\n key: CERTIFICATE\n value: copy from where it is saved "
 
 read -n 1 -s -r -p " Press any key to continue. "
 
@@ -652,11 +666,11 @@ echo -e "\n key: CERTIFICATE_CHAIN\n value: copy from where it is saved.\n Save.
 
 read -n 1 -s -r -p " Press any key to continue. "
 
-echo -e "\n1. ArgoCD: all WAFs should become healthy.\n2. AWS(paris account):\n- there are 3 distributions in cloudfront\n- there are 3 certificates in ACM(certificate manager) "
+echo -e "\n1. ArgoCD: all WAFs should become healthy.\n2. AWS($city account):\n- there are 3 distributions in cloudfront\n- there are 3 certificates in ACM(certificate manager) "
 
 read -n 1 -s -r -p " Press any key to continue. "
 
-echo -e "\n1. Move to https://argocd.$CLUSTER >>captain-manifests >> waf-test-prod >> waf-test-prod-firstwaf \n2. Copy cloudfront_url value\n3. Move to AWS >> qa-shared-resources >> route53 in search >> hosted zones >> paris.waf.qa-glueops.com.\n4. Create record:\n - paste the value (cloudfront_url);\n paste 1 in the record name;\n record type - CNAME;\n TTL - 1 min;\n Create records "
+echo -e "\n1. Move to https://argocd.$CLUSTER >>captain-manifests >> waf-test-prod >> waf-test-prod-firstwaf \n2. Copy cloudfront_url value\n3. Move to AWS >> qa-shared-resources >> route53 in search >> hosted zones >> $city.waf.qa-glueops.com.\n4. Create record:\n - paste the value (cloudfront_url);\n paste 1 in the record name;\n record type - CNAME;\n TTL - 1 min;\n Create records "
 
 read -n 1 -s -r -p " Press any key to continue. "
 
@@ -668,23 +682,23 @@ echo -e "\nRepeat the same with waf-test-prod-thirdwafmultipledomains by analogy
 
 read -n 1 -s -r -p " Press any key to continue. "
 
-echo -e "\n1. Move to https://argocd.$CLUSTER >> captain-manifests >> waf-test-prod >> waf-test-prod-public.\n2. Check whether encryption is those one what is selected (Lets encrypt - for custom certs)(check all 5 apps).\nTo check encryption:\n1. Select app (each one from five).\n2. Click on View site information(left top corner near Refresh the page icon).\n3. Click on Connection is secure.\n4. Click on Certificate is valid. \n (to check which encryption for which WAF is set up (Amazon or Let's encrypt) you can here https://github.com/example-tenant/deployment-configurations/blob/main/apps/waf-test/envs/prod/values.yaml)"
+echo -e "\n1. Move to https://argocd.$CLUSTER >> captain-manifests >> waf-test-prod >> waf-test-prod-public.\n2. Check whether encryption is those one what is selected (Lets encrypt - for custom certs)(check all 5 apps).\nTo check encryption:\n1. Select app (each one from five).\n2. Click on View site information(left top corner near Refresh the page icon).\n3. Click on Connection is secure.\n4. Click on Certificate is valid. \n (to check which encryption for which WAF is set up (Amazon or Let's encrypt) you can here https://github.com/$FULLTENANT/deployment-configurations/blob/main/apps/waf-test/envs/prod/values.yaml)"
 
 read -n 1 -s -r -p " Press any key to continue. "
 
-echo -e "\n1. Move to https://github.com/example-tenant/deployment-configurations/blob/main/apps/waf-test/envs/prod/values.yaml .\n2. Edit >> put customCertificateSecretStorePath (select all text in raw) in those WAF, where it is not and delete in those where it is (usually swap between second and third ones).\n3. Commit changes >> commit directly to the main branch. "
+echo -e "\n1. Move to https://github.com/$FULLTENANT/deployment-configurations/blob/main/apps/waf-test/envs/prod/values.yaml .\n2. Edit >> put customCertificateSecretStorePath (select all text in raw) in those WAF, where it is not and delete in those where it is (usually swap between second and third ones).\n3. Commit changes >> commit directly to the main branch. "
 
 read -n 1 -s -r -p " Press any key to continue. "
 
-echo -e "\n1. Move to https://argocd.$CLUSTER >> captain-manifests >> waf-test-prod >> waf-test-prod-public.\n2. Check whether encryptions are changed.\n IF the changes are not displayed there are several options:\n1. Try to refresh app pages.\n2. Open pages in Incognito mode.\n3. Split terminal and use next commands for each app to check manually in terminal:\ncurl 1.paris.waf.qa-glueops.com -vIL\ncurl 2.paris.waf.qa-glueops.com -vIL\ncurl 3.paris.waf.qa-glueops.com -vIL\ncurl 4.paris.waf.qa-glueops.com -vIL\ncurl 5.paris.waf.qa-glueops.com -vIL "
+echo -e "\n1. Move to https://argocd.$CLUSTER >> captain-manifests >> waf-test-prod >> waf-test-prod-public.\n2. Check whether encryptions are changed.\n IF the changes are not displayed there are several options:\n1. Try to refresh app pages.\n2. Open pages in Incognito mode.\n3. Split terminal and use next commands for each app to check manually in terminal:\ncurl 1.$city.waf.qa-glueops.com -vIL\ncurl 2.$city.waf.qa-glueops.com -vIL\ncurl 3.$city.waf.qa-glueops.com -vIL\ncurl 4.$city.waf.qa-glueops.com -vIL\ncurl 5.$city.waf.qa-glueops.com -vIL "
 
 read -n 1 -s -r -p " Press any key to continue. "
 
-echo -e "\n1. Move to AWS (pariss account) >> ACM >> check whether right certificates are active: whether there are in use with those type of encryption, which is configured (there should be usually 5 certs on this stage: 3 are in use and 2 are not).\n2. Move to cloudfront >> distributions >> 3 distributions are active (status - enabled). "
+echo -e "\n1. Move to AWS ($city account) >> ACM >> check whether right certificates are active: whether there are in use with those type of encryption, which is configured (there should be usually 5 certs on this stage: 3 are in use and 2 are not).\n2. Move to cloudfront >> distributions >> 3 distributions are active (status - enabled). "
 
 read -n 1 -s -r -p " Press any key to continue. "
 
-URL="https://3.paris.waf.qa-glueops.com"
+URL="https://3.$city.waf.qa-glueops.com"
 COUNT=120
 
 for (( i=1; i<=$COUNT; i++ ))
@@ -697,15 +711,15 @@ echo -e "Please wait for 1 minute untill information is updating "
 
 sleep 60
 
-curl https://3.paris.waf.qa-glueops.com -v
+curl https://3.$city.waf.qa-glueops.com -v
 
 read -n 1 -s -r -p " Press any key to continue if there is Too many requests message "
 
-curl https://3.paris.waf.qa-glueops.com -v
+curl https://3.$city.waf.qa-glueops.com -v
 
 read -n 1 -s -r -p " Press any key to continue if there is Too many requests message "
 
-echo -e "\n1. Move to https://github.com/example-tenant/deployment-configurations/blob/main/apps/waf-test/envs/prod/values.yaml \n2. Edit this file >> comment all WAF part (from row 44 to the end.) >> commit changes >> commit directly to the main branch.\n3. Move to the codespace.\n4. Comment webacl.yaml. " 
+echo -e "\n1. Move to https://github.com/$FULLTENANT/deployment-configurations/blob/main/apps/waf-test/envs/prod/values.yaml \n2. Edit this file >> comment all WAF part (from row 44 to the end.) >> commit changes >> commit directly to the main branch.\n3. Move to the codespace.\n4. Comment webacl.yaml. " 
 
 read -n 1 -s -r -p " Press any key to continue. "
 
@@ -729,14 +743,14 @@ echo -e "\n1. Move to https://argocd.$CLUSTER .\n2. Enter glueops-core/captain-m
 
 read -n 1 -s -r -p " Press any key to continue when wafs are deleted "
 
-echo -e "\n1. Move to AWS (paris account) >> WAF & Shield >> Web ACLs ( left side) >> change region to "Global" >> should be nothing there.\n2. ACM (paris account)  >> ceritficate manager >> all should be deleted after ArgoCD is done.\n3. Cloudfront (paris account) >> distributions  >> all is gone. "
+echo -e "\n1. Move to AWS ($city account) >> WAF & Shield >> Web ACLs ( left side) >> change region to "Global" >> should be nothing there.\n2. ACM ($city account)  >> ceritficate manager >> all should be deleted after ArgoCD is done.\n3. Cloudfront ($city account) >> distributions  >> all is gone. "
 
 read -n 1 -s -r -p " Press any key to continue if everything above is deleted "
 
-echo -e "\n1. Move to qa-shared-resources account >> route53 >> hosted zones >> paris.waf.qa-glueops.com >> delete records that begins from 1/2/3/4/5 ."
+echo -e "\n1. Move to qa-shared-resources account >> route53 >> hosted zones >> $city.waf.qa-glueops.com >> delete records that begins from 1/2/3/4/5 ."
 
 read -n 1 -s -r -p " Press any key to continue if are ready to start deleting/reverting process. "
 
-echo -e " You may perform next algorithms (AWS and GitHub) separately at the same time. Feel free to combine them in order to reduce time consuming.\n AWS teardown:\n1. Move to https://github.com/development-captains/$CLUSTER .\n2. Find Teardown Kubernetes >> AWS Teardown.\n3. Copy nuke command.\n4. Click on Launch a Cloudshell link.\n5. WARNING: SELECT ROOT ACCOUNT (Click on dropdown with account name at the right top >> click Switch back if root is not selected yet).\n6. Execute command several times (usually 3) for each account (glueops-captain-madrid and glueops-captain-paris).\n NOTE: in about 5 minutes after 1st and 2nd run for each account you should press ctrl + c (stop executing) and execute command again.\n FINAL OUTPUT SHOULD BE: No resource to delete.\n7. Move back to https://github.com/development-captains/$CLUSTER >> find Delete Tenant Data From S3 >> copy command >> execute in CloudShell too by entering domain name.\nGitHub deleting/reverting:\n1. Move to https://github.com/internal-GlueOps/development-infrastructure/blob/main/tenants/pluto/tf/tenant_pluto.tf .\n2. Edit this file >> Delete cluster environments (rows 9-78 including).\n3. Commit changes >> Commit in the new branch.\n4. Create pull request >> click on Details on the right of Terraform icon >> wait untill plan is finished.\n5. Move back to pull request >> merge pull request >> confirm merge >> delete branch.\n6. Move back to Terraform >> runs >> manage run which is appeared (confirm and apply).\n7. Move to https://github.com/internal-GlueOps/development-infrastructure/pulls >> closed. \n8. Revert changes from the last pull request by analogy with applying the changes in Terraform. "
+echo -e " You may perform next algorithms (AWS and GitHub) separately at the same time. Feel free to combine them in order to reduce time consuming.\n AWS teardown:\n1. Move to https://github.com/development-captains/$CLUSTER .\n2. Find Teardown Kubernetes >> AWS Teardown.\n3. Copy nuke command.\n4. Click on Launch a Cloudshell link.\n5. WARNING: SELECT ROOT ACCOUNT (Click on dropdown with account name at the right top >> click Switch back if root is not selected yet).\n6. Execute command several times (usually 3) for each account ($awsacc and $wafacc).\n NOTE: in about 5 minutes after 1st and 2nd run for each account you should press ctrl + c (stop executing) and execute command again.\n FINAL OUTPUT SHOULD BE: No resource to delete.\n7. Move back to https://github.com/development-captains/$CLUSTER >> find Delete Tenant Data From S3 >> copy command >> execute in CloudShell too by entering domain name.\nGitHub deleting/reverting:\n1. Move to https://github.com/internal-GlueOps/development-infrastructure/blob/main/tenants/$TENANT/tf/tenant.tf .\n2. Edit this file >> Delete cluster environments (rows 9-78 including).\n3. Commit changes >> Commit in the new branch.\n4. Create pull request >> click on Details on the right of Terraform icon >> wait untill plan is finished.\n5. Move back to pull request >> merge pull request >> confirm merge >> delete branch.\n6. Move back to Terraform >> runs >> manage run which is appeared (confirm and apply).\n7. Move to https://github.com/internal-GlueOps/development-infrastructure/pulls >> closed. \n8. Revert changes from the last pull request by analogy with applying the changes in Terraform. "
 
 
