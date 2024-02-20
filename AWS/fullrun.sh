@@ -401,7 +401,7 @@ read -n 1 -s -r -p " Press any key to continue if all actions above are performe
 cd /workspaces/glueops
 
 # Repository and branch parameters
-NEW_BRANCH="AntonBilyk-patch-1"
+read -p "Enter your temporary branch name: "  NEW_BRANCH
 FILE_PATH="index.html" # Change the file path if necessary
 
 # Clone a repository using the GitHub CLI
@@ -511,6 +511,10 @@ fi
 
 # Returning to the initial directory
 cd ..
+
+echo -e "Move to ArgoCD and make sure that 3 apps are updated "
+
+read -n 1 -s -r -p " Press any key to continue if everything is okay "
 
 echo -e "Grafana / Loki \n1. https://grafana.$CLUSTER/ >> alerting(hamburger) >> alerting >> alert rules >> search by data sources: loki (should be 3 alerts). \n2. https://grafana.$CLUSTER/alerting/list - should be 1 required alert. \n3. Grafana >> hamburger >> dashboards >> ingress by Host >> watch correct IP tracking according own IP and right ammount of requests adding. \n4. https://grafana.$CLUSTER.rocks/ >> hamburger >> dashboards >> DevOps - ArgoCD >> check wheter all charts are functioning "
 
