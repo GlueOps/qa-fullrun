@@ -644,7 +644,7 @@ until [ "$nwcstcrt" == "yes" ] || [ "$nwcstcrt" == "no" ]; do
   fi
 done
 
-if [ "$update" != "no" ]; then
+if [ "$nwcstcrt" != "no" ]; then
   echo -e " Several hints for actions below:\n1. First input - enter working email. Second input - type yes. Third input - type no. Fourth input - *.$city.waf.qa-glueops.com.\n2. After fourth input is entered - copy value that has appeared as output.\n3. Move to AWS >> change account to qa-shared-resources >> search route53 >> hosted zones >> $city.waf.qa-glueops.com.\n4. Find those record name, which is the same as in codespace output.\n5. Select it >> Edit record >> paste value in value field >> save.\n6. Move back to codespace.\n7. Copy name fully in output.\n8. Split terminal.\n9. dig txt (copied DNS txt record) in the new terminal >> compare the values.\n10. Exit splited terminal, finally press enter. "
   read -n 1 -s -r -p " Press any key to  start performing steps. "
   sudo certbot certonly --manual --preferred-challenges dns
