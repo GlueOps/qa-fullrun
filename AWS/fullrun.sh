@@ -548,11 +548,15 @@ echo -e "\n1. Move to https://argocd.$CLUSTER >> captain-manifests. There should
 
 read -n 1 -s -r -p " Press any key to continue if you everything above is okay and you are ready "
 
+unset rtlmt
+
+unset nmprvd
+
 read -p "Enter new limit(for eg 110) " rtlmt
 
 read -p "Enter the new name to note, by whom it's provided " nmprvd
 
-sed -i -e "106s/100/$rtlmt/g; 63s/GlueOps/$nmprvd/g" webacl.yaml
+sed -i -e "106s/100/$rtlmt/" -e "63s/GlueOps/$nmprvd/" webacl.yaml
 
 git status
 
