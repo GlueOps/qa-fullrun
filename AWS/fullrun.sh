@@ -346,7 +346,7 @@ if [ "$update" != "no" ]; then
   echo -e "1. Move to https://github.com/GlueOps/terraform-module-cloud-multy-prerequisites. \n2. Select the required version (usually from branch). \n3. Move to https://github.com/internal-GlueOps/development-infrastructure/blob/main/tenants/$TENANT/tf/tenant.tf .\n4. Insert verison into the 2nd row of the code (after ref=).\n5. Save changes and manage them in Terraform."
   read -n 1 -s -r -p " Press any key to continue if all actions above are completed successfully"
   git pull
-  cd ..
+  cd /workspaces/glueops/$CLUSTER
   helm repo update
   read -p "Enter ArgoCD version: " ArgoCDv
   read -p "Enter helm-chart version: " Helmv
@@ -406,7 +406,7 @@ FILE_PATH="index.html" # Change the file path if necessary
 
 # Clone a repository using the GitHub CLI
 gh repo clone $FULLTENANT/wordpress
-cd wordpress
+cd /workspaces/glueops/wordpress
 
 # Enter new content on the page
 read -p "Enter new content for the page " NEW_TEXT
@@ -487,7 +487,7 @@ echo "Please follow https://github.com/$FULLTENANT/wordpress/actions to ensure t
 # Wait for user input to continue
 read -n 1 -s -r -p "Press any key to continue after confirming that all actions have completed successfully."
 
-cd ../deployment-configurations
+cd /workspaces/glueops/deployment-configurations
 
 git fetch
 
@@ -510,7 +510,7 @@ else
 fi
 
 # Returning to the initial directory
-cd ..
+cd /workspaces/glueops
 
 echo -e "Move to ArgoCD and make sure that 3 apps are updated "
 
