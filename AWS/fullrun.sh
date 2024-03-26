@@ -28,11 +28,11 @@ gh repo clone development-captains/$CLUSTER
 
 gh repo clone $FULLTENANT/deployment-configurations
 
-cd deployment-configurations
+cd /workspaces/glueops/deployment-configurations
 
 git pull
 
-cd ..
+cd /workspaces/glueops
 
 # Hints
 echo "1. Move to https://github.com/development-captains/$CLUSTER , find "AWS" >> "Deploy Kubernetes" , click on "Launch a CloudShell" hyperlink "
@@ -44,13 +44,13 @@ echo "6. Confirm changes in Terraform "
 
 read -n 1 -s -r -p "Press any key to continue when all actions above are done"
 
-cd $CLUSTER/terraform/kubernetes
+cd /workspaces/glueops/$CLUSTER/terraform/kubernetes
 
 git fetch
 
 git pull
 
-cd ../../..
+cd /workspaces/glueops
 
 echo " Check wheter changes are applied in "platform.yaml" "
 
@@ -100,7 +100,7 @@ cd /workspaces/glueops/$CLUSTER
 
 source .env
 
-cd terraform/kubernetes/
+cd /workspaces/glueops/$CLUSTER/terraform/kubernetes/
 
 # 2nd piece
 
@@ -179,7 +179,7 @@ kubectl get pods -n glueops-core-vault
 
 read -n 1 -s -r -p "Press any key to continue if all items above are working "
 
-cd ..
+cd /workspaces/glueops/
 
 source /workspaces/glueops/$CLUSTER/.env
 
