@@ -2,7 +2,7 @@
 
 yolo
 
-if [ -f /workspaces/glueops/saved_variables]; then
+if [ -f /workspaces/glueops/saved_variables ]; then
   . /workspaces/glueops/saved_variables
 else
   unset FULLTENANT
