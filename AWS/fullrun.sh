@@ -1,5 +1,8 @@
 #!/bin/bash
 
+source /home/vscode/.oh-my-zsh/custom/yolo.zsh
+source /home/vscode/.oh-my-zsh/custom/create-ghcr-regcred.zsh
+
 yolo
 
 unset FULLTENANT
