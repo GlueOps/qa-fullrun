@@ -5,21 +5,22 @@ source /home/vscode/.oh-my-zsh/custom/create-ghcr-regcred.zsh
 
 yolo
 
-unset FULLTENANT
-
-unset CLUSTER
-
-read -p "Enter your full tenant name: " FULLTENANT
-
-read -p "Enter your captain domain: " CLUSTER
-
-unset awsacc
-
-unset wafacc
-
-read -p "Enter your AWS account credentials: " awsacc
-
-read -p "Enter your WAF account credentials: " wafacc
+if [ -f /workspaces/glueops/saved_variables ]; then
+  . /workspaces/glueops/saved_variables
+else
+  unset FULLTENANT
+  unset CLUSTER
+  read -p "Enter your full tenant name: " FULLTENANT
+  read -p "Enter your captain domain: " CLUSTER
+  unset awsacc
+  unset wafacc
+  read -p "Enter your AWS account credentials: " awsacc
+  read -p "Enter your WAF account credentials: " wafacc
+  echo "FULLTENANT=$FULLTENANT" >> /workspaces/glueops/saved_variables
+  echo "CLUSTER=$CLUSTER" >> /workspaces/glueops/saved_variables
+  echo "awsacc=$awsacc" >> /workspaces/glueops/saved_variables
+  echo "wafacc=$wafacc" >> /workspaces/glueops/saved_variables
+fi
 
 IFS='-' read -r compname rank city <<< "$wafacc"
 
