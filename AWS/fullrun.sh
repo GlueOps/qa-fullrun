@@ -28,313 +28,314 @@ IFS='-' read -r compname rank city <<< "$wafacc"
 
 IFS='.' read -r ENV TENANT DOMAIN <<< "$CLUSTER"
 
-gh repo clone development-captains/$CLUSTER
+STATE_FILE="state.txt"
 
-gh repo clone $FULLTENANT/deployment-configurations
-
-cd /workspaces/glueops/deployment-configurations
-
-git pull
-
-cd /workspaces/glueops
-
-# Hints
-echo "1. Move to https://github.com/development-captains/$CLUSTER , find "AWS" >> "Deploy Kubernetes" , click on "Launch a CloudShell" hyperlink "
-echo "2. Move to https://github.com/development-captains/$CLUSTER in another tab , find "AWS" >> "Deploy Kubernetes" , execute bash account-setup.sh command in CloudShell "
-echo "3. Enter AWS account name ($awsacc) >> Enter another AWS account name ($wafacc) "
-echo "4. Move to codespace >> Create .env file by following hints from CloudShell (add all content between 1st and last rows) and save it in "$CLUSTER" repo "
-echo "5. Update tenant.tf (https://github.com/internal-GlueOps/development-infrastructure/blob/main/tenants/$TENANT/tf/tenant.tf) by inserting aws_access_key and aws_secret values from CloudShell , create new branch. "
-echo "6. Confirm changes in Terraform "
-
-read -n 1 -s -r -p "Press any key to continue when all actions above are done"
-
-cd /workspaces/glueops/$CLUSTER/terraform/kubernetes
-
-git fetch
-
-git pull
-
-cd /workspaces/glueops
-
-echo " Check wheter changes are applied in "platform.yaml" "
-
-read -n 1 -s -r -p "Press any key to continue "
-
-# 1st piece
-
-mkdir -p qa-fullrun/AWS/templates
-
-mkdir -p qa-fullrun/AWS/templates2
-
-curl https://raw.githubusercontent.com/GlueOps/terraform-module-cloud-aws-kubernetes-cluster/main/tests/main.tf -o qa-fullrun/AWS/templates/main.tf 
-
-cd /workspaces/glueops/$CLUSTER
-
-source $(pwd)/.env
-
-cd /workspaces/glueops/$CLUSTER/terraform/kubernetes
-
-read -p "Enter arn:aws:iam number" value2
-
-render_templates() {
-  local template_dir="$1"
-  local target_dir="$PWD"
-
-  # Create the target directory if it doesn't exist
-  mkdir -p "$target_dir"
-
-  # Loop through the template files in the template directory
-  for template_file in "$template_dir"/*; do
-    if [ -f "$template_file" ]; then
-      # Extract the filename without the path
-      template_filename=$(basename "$template_file")
-
-      # Replace the placeholder with the user-entered value and save it to the target directory
-      sed -e "s/761182885829/$value2/g" -e "s/\.\.\//git::https:\/\/github.com\/GlueOps\/terraform-module-cloud-aws-kubernetes-cluster.git/g" "$template_file" > "$target_dir/$template_filename"
-    fi
-  done
-
-  echo "main.tf is successfully created in $target_dir."
+save_state() {
+  echo "current_step=$current_step" > "$STATE_FILE"
 }
 
-# Call the function with the template and target directories
-render_templates "../../../qa-fullrun/AWS/templates" 
+if [[ -f "$STATE_FILE" ]]; then
+  source "$STATE_FILE"
+else
+  current_step=0
+fi
 
-cd /workspaces/glueops/$CLUSTER
+total_steps=
 
-source .env
+# Step 1
+if [[ $current_step -le 0 ]]; then
+ gh repo clone development-captains/$CLUSTER
+ gh repo clone $FULLTENANT/deployment-configurations
+ cd /workspaces/glueops/deployment-configurations
+ git pull
+ current_step=1
+ save_state
+fi
 
-cd /workspaces/glueops/$CLUSTER/terraform/kubernetes/
+# Step 2
+if [[ $current_step -le 1 ]]; then
+ cd /workspaces/glueops
+ # Hints
+ echo "1. Move to https://github.com/development-captains/$CLUSTER , find "AWS" >> "Deploy Kubernetes" , click on "Launch a CloudShell" hyperlink "
+ echo "2. Move to https://github.com/development-captains/$CLUSTER in another tab , find "AWS" >> "Deploy Kubernetes" , execute bash account-setup.sh command in CloudShell "
+ echo "3. Enter AWS account name ($awsacc) >> Enter another AWS account name ($wafacc) "
+ echo "4. Move to codespace >> Create .env file by following hints from CloudShell (add all content between 1st and last rows) and save it in "$CLUSTER" repo "
+ echo "5. Update tenant.tf (https://github.com/internal-GlueOps/development-infrastructure/blob/main/tenants/$TENANT/tf/tenant.tf) by inserting aws_access_key and aws_secret values from CloudShell , create new branch. "
+ echo "6. Confirm changes in Terraform "
+ read -n 1 -s -r -p "Press any key to continue when all actions above are done"
+ cd /workspaces/glueops/$CLUSTER/terraform/kubernetes
+ git fetch
+ git pull
+ cd /workspaces/glueops
+ echo " Check wheter changes are applied in "platform.yaml" "
+ current_step=2
+ save_state
+fi
 
-# 2nd piece
+# Step 3
+if [[ $current_step -le 2 ]]; then
+ read -n 1 -s -r -p "Press any key to continue "
+ # 1st piece
+ mkdir -p qa-fullrun/AWS/templates
+ mkdir -p qa-fullrun/AWS/templates2
+ curl https://raw.githubusercontent.com/GlueOps/terraform-module-cloud-aws-kubernetes-cluster/main/tests/main.tf -o qa-fullrun/AWS/templates/main.tf 
+ cd /workspaces/glueops/$CLUSTER
+ source $(pwd)/.env
+ cd /workspaces/glueops/$CLUSTER/terraform/kubernetes
+ read -p "Enter arn:aws:iam number" value2
+ render_templates() {
+   local template_dir="$1"
+   local target_dir="$PWD"
 
-terraform init
+   # Create the target directory if it doesn't exist
+   mkdir -p "$target_dir"
 
-terraform apply -auto-approve
+   # Loop through the template files in the template directory
+   for template_file in "$template_dir"/*; do
+     if [ -f "$template_file" ]; then
+       # Extract the filename without the path
+       template_filename=$(basename "$template_file")
 
-cd /workspaces/glueops
+       # Replace the placeholder with the user-entered value and save it to the target directory
+       sed -e "s/761182885829/$value2/g" -e "s/\.\.\//git::https:\/\/github.com\/GlueOps\/terraform-module-cloud-aws-kubernetes-cluster.git/g" "$template_file" > "$target_dir/$template_filename"
+     fi
+   done
 
-aws eks update-kubeconfig --region us-west-2 --name captain-cluster --role-arn arn:aws:iam::$value2:role/glueops-captain-role
-
-sed -i 's/^#//' $CLUSTER/.env
-
-source /workspaces/glueops/$CLUSTER/.env
-
-kubectl get nodes
-
-kubectl delete daemonset -n kube-system aws-node
-
-cd /workspaces/glueops/$CLUSTER
-
-curl https://raw.githubusercontent.com/wiki/GlueOps/terraform-module-cloud-aws-kubernetes-cluster/calico.yaml.md -o ../qa-fullrun/AWS/templates2/calico.yaml 
-
-render_templates2() {
-  local template_dir="$1"
-  local target_dir="$PWD"
-
-  # Create the target directory if it doesn't exist
-  mkdir -p "$target_dir"
-
-  # Loop through the template files in the template directory
-  for template_file in "$template_dir"/*; do
-    if [ -f "$template_file" ]; then
-      # Extract the filename without the path
-      template_filename=$(basename "$template_file")
-
-      # Delete yaml markers
-      sed '1d;$d' "$template_file" > "$target_dir/$template_filename"
-    fi
-  done
-
-  echo "calico.yaml is successfully created in $target_dir."
+   echo "main.tf is successfully created in $target_dir."
 }
 
-render_templates2 "../qa-fullrun/AWS/templates2" 
+ # Call the function with the template and target directories
+ render_templates "../../../qa-fullrun/AWS/templates" 
 
-# 3d piece
+ cd /workspaces/glueops/$CLUSTER
 
-raw_link="https://raw.githubusercontent.com/wiki/GlueOps/terraform-module-cloud-aws-kubernetes-cluster/install-calico.md"
+ source .env
 
-commands=$(curl -s "$raw_link")
+ cd /workspaces/glueops/$CLUSTER/terraform/kubernetes/
 
-commands=$(echo "$commands" | sed '1d;$d') 
+ # 2nd piece
 
-echo "$commands"
+ terraform init
 
-bash -c "$commands"
+ terraform apply -auto-approve
 
-sed -i 's/^#//' terraform/kubernetes/main.tf
+ cd /workspaces/glueops
 
-cd /workspaces/glueops/$CLUSTER/terraform/kubernetes
+ aws eks update-kubeconfig --region us-west-2 --name captain-cluster --role-arn arn:aws:iam::$value2:role/glueops-captain-role
 
-terraform init
+ sed -i 's/^#//' $CLUSTER/.env
 
-terraform apply -auto-approve
+ source /workspaces/glueops/$CLUSTER/.env
 
-cd /workspaces/glueops/$CLUSTER
+ kubectl get nodes
 
-echo "1. Move to https://github.com/development-captains/$CLUSTER , find Deploying GlueOps the Platform >> Deploy ArgoCD , copy command , split the terminal , enter yolo, enter source /workspaces/glueops/$CLUSTER/.env , enter command in splited terminal , wait untill 3 of 3 argocd-redis-ha-server are ready , press ctrl + c (use kubectl get pods -n glueops-core command for monitoring).  "
-echo "2. Move back to https://github.com/development-captains/$CLUSTER , find Deploying GlueOps the Platform >> Deploy the GlueOps Platform , copy command , move back to splited terinal , enter command , wait untill all are sync (only one health status should be degraded ) , press ctrl + c (use kubectl get applications -n glueops-core for monitoring) ( if some of the apps are processing for long time then: 1. kubectl get certificates -A 2. kubectl delete pods --all -n glueops-core-cert-manager).  "
-echo "3. Close splited termminal  "
+ kubectl delete daemonset -n kube-system aws-node
 
-read -n 1 -s -r -p "Press any key to continue when all actions above are done"
+ cd /workspaces/glueops/$CLUSTER
 
-kubectl get pods -n glueops-core-vault
+ curl https://raw.githubusercontent.com/wiki/GlueOps/terraform-module-cloud-aws-kubernetes-cluster/calico.yaml.md -o ../qa-fullrun/AWS/templates2/calico.yaml 
 
-read -n 1 -s -r -p "Press any key to continue if all items above are working "
+ render_templates2() {
+   local template_dir="$1"
+   local target_dir="$PWD"
 
-cd /workspaces/glueops/
+   # Create the target directory if it doesn't exist
+   mkdir -p "$target_dir"
 
-source /workspaces/glueops/$CLUSTER/.env
+   # Loop through the template files in the template directory
+   for template_file in "$template_dir"/*; do
+     if [ -f "$template_file" ]; then
+       # Extract the filename without the path
+       template_filename=$(basename "$template_file")
 
-kubectl -n glueops-core-vault port-forward svc/vault-ui 8200:8200 &
+       # Delete yaml markers
+       sed '1d;$d' "$template_file" > "$target_dir/$template_filename"
+     fi
+   done
 
-sleep 15  
-
-cd /workspaces/glueops/$CLUSTER/terraform/vault/configuration/
-
-terraform init && terraform apply -auto-approve
-
-sleep 10
-
-pkill -f "kubectl -n glueops-core-vault port-forward"
-
-sleep 30
-
-kubectl get applications -A
-
-read -n 1 -s -r -p " Press any key to continue if all items above are healthy. Secrets may become healthy with some delay. To check it again you need: split terminal , enter yolo , enter source /workspaces/glueops/$CLUSTER/.env , enter kubectl get applications -A ( if secrets are still degraded >> go to ArgoCD >> external secrets >> sync. If still degraded >> delete clustersecretstore) "
-
-cd /workspaces/glueops/$CLUSTER/manifests
-
-# Function to render templates
-render_templates() {
-  local template_dir="$1"
-  local target_dir="$PWD"
-  
-  # Split cluster name to different parts
-
-  IFS='.' read -r ENV TENANT DOMAIN <<< "$CLUSTER"
-
-  unset process_webacl
-  
-  until [ "$process_webacl" == "yes" ] || [ "$process_webacl" == "no" ]; do
-    # Webacl manifest creating
-    read -p "Do you want to create webacl.yaml manifest? Type 'yes' or 'no': " process_webacl
-
-    # Checking of input
-    if [ "$process_webacl" != "yes" ] && [ "$process_webacl" != "no" ]; then
-      echo "Invalid input. Please enter 'yes' or 'no'."
-    fi
-  done
-
-  # Define webacl manifest fullname
-  WEBACL="webacl.yaml"
-
-  if [ "$process_webacl" == no ]; then
-  echo "File processing skipped for $WEBACL."
-  fi
-
-  unset process_file
-
-  until [ "$process_file" == "yes" ] || [ "$process_file" == "no" ]; do
-    # Ecrregcred manifest creating
-    read -p "Do you want to create ecr-regcred.yaml manifest? Type 'yes' or 'no': " process_file
-
-    # Checking of input
-    if [ "$process_file" != "yes" ] && [ "$process_file" != "no" ]; then
-      echo "Invalid input. Please enter 'yes' or 'no'."
-    fi
-  done
-
-  # Define ecrregcred manifest fullname
-  REGCRED="ecr-regcred.yaml"
-
-  if [ "$process_file" == no ]; then
-    echo "File processing skipped for $REGCRED."
-  else
-    read -p "Enter access-key-id for ecr-regcred: " valueid
-    read -p "Enter secret-access-key: " valuesecret
-  fi
-
-  unset use_defaultorg
-  unset use_defaultrepo
-  
-  until [ "$use_defaultorg" == "yes" ] || [ "$use_defaultorg" == "no" ]; do
-    # Organization path
-    read -p "Do you use default organization(example-tenant)? Type 'yes' or 'no': " use_defaultorg
-
-    # Checking of input
-    if [ "$use_defaultorg" != "yes" ] && [ "$use_defaultorg" != "no" ]; then
-      echo "Invalid input. Please enter 'yes' or 'no'."
-    fi
-  done
-  
-  if [ "$use_defaultorg" == yes ]; then
-    org_name="example-tenant"
-  else
-    read -p "Enter organization name: " org_name
-  fi
-
-  until [ "$use_defaultrepo" == "yes" ] || [ "$use_defaultrepo" == "no" ]; do
-    # Repository path
-    read -p "Do you use default repository (deployment-configurations)? Type 'yes' or 'no': " use_defaultrepo
-
-    # Checking of input
-    if [ "$use_defaultrepo" != "yes" ] && [ "$use_defaultrepo" != "no" ]; then
-      echo "Invalid input. Please enter 'yes' or 'no'."
-    fi
-  done
-
-  if [ "$use_defaultrepo" == yes ]; then
-    repo_name="deployment-configurations"
-  else
-    read -p "Enter repository name: " repo_name
-  fi
-
-  # Create the target directory if it doesn't exist
-  mkdir -p "$target_dir"
-
-  # Loop through the template files in the template directory
-  for template_file in "$template_dir"/*; do
-    if [ -f "$template_file" ]; then
-      # Extract the filename without the path
-      template_filename=$(basename "$template_file")
-
-      # Replace the placeholder with the user-entered value and save it to the target directory
-      if  [ "$process_file" == yes ] || [ "$template_filename" != "$REGCRED" ]; then
-        if [ "$process_webacl" == yes ] || [ "$template_filename" != "$WEBACL" ]; then
-        sed "s/cluster_env/$ENV/g; s/CLUSTER_VARIABLE/$CLUSTER/g; s/key_id/$valueid/g; s/key_value/$valuesecret/g; s/example-tenant/$org_name/g; s/deployment-configurations/$repo_name/g" "$template_file" > "$target_dir/$template_filename"
-        fi
-      fi
-    fi
-  done
-
-  echo "Templates have been rendered and saved to $target_dir."
+   echo "calico.yaml is successfully created in $target_dir."
 }
 
-# Call the function with the template and target directories
-render_templates "../../qa-fullrun/AWS/manifeststemplates" 
+ render_templates2 "../qa-fullrun/AWS/templates2" 
 
-sleep 5
+ # 3d piece
 
-yolo
+ raw_link="https://raw.githubusercontent.com/wiki/GlueOps/terraform-module-cloud-aws-kubernetes-cluster/install-calico.md"
 
-git status
+ commands=$(curl -s "$raw_link")
 
-read -n 1 -s -r -p " Press any key to continue if you agree to add all the changes "
+ commands=$(echo "$commands" | sed '1d;$d') 
 
-git add -A
+ echo "$commands"
 
-git status
+ bash -c "$commands"
 
-read -n 1 -s -r -p " Press any key to continue if you agree to commit "
+ sed -i 's/^#//' terraform/kubernetes/main.tf
 
-git commit
+ cd /workspaces/glueops/$CLUSTER/terraform/kubernetes
 
-read -n 1 -s -r -p " Press any key to continue if you agree to push the changes "
+ terraform init
 
-git push
+ terraform apply -auto-approve
+
+ current_step=3
+ save_state
+fi
+
+# Step 4
+if [[ $current_step -le 3 ]]; then
+ cd /workspaces/glueops/$CLUSTER
+ echo "1. Move to https://github.com/development-captains/$CLUSTER , find Deploying GlueOps the Platform >> Deploy ArgoCD , copy command , split the terminal , enter yolo, enter source /workspaces/glueops/$CLUSTER/.env , enter command in splited terminal , wait untill 3 of 3 argocd-redis-ha-server are ready , press ctrl + c (use kubectl get pods -n glueops-core command for monitoring).  "
+ echo "2. Move back to https://github.com/development-captains/$CLUSTER , find Deploying GlueOps the Platform >> Deploy the GlueOps Platform , copy command , move back to splited terinal , enter command , wait untill all are sync (only one health status should be degraded ) , press ctrl + c (use kubectl get applications -n glueops-core for monitoring) ( if some of the apps are processing for long time then: 1. kubectl get certificates -A 2. kubectl delete pods --all -n glueops-core-cert-manager).  "
+ echo "3. Close splited termminal  "
+ current_step=4
+ save_state
+fi
+
+# Step 5
+if [[ $current_step -le 4 ]]; then
+ read -n 1 -s -r -p "Press any key to continue when all actions above are done"
+ kubectl get pods -n glueops-core-vault
+ read -n 1 -s -r -p "Press any key to continue if all items above are working "
+ cd /workspaces/glueops/
+ source /workspaces/glueops/$CLUSTER/.env
+ kubectl -n glueops-core-vault port-forward svc/vault-ui 8200:8200 &
+ sleep 15  
+ cd /workspaces/glueops/$CLUSTER/terraform/vault/configuration/
+ terraform init && terraform apply -auto-approve
+ sleep 10
+ pkill -f "kubectl -n glueops-core-vault port-forward"
+ sleep 30
+ kubectl get applications -A
+ read -n 1 -s -r -p " Press any key to continue if all items above are healthy. Secrets may become healthy with some delay. To check it again you need: split terminal , enter yolo , enter source /workspaces/glueops/$CLUSTER/.env , enter kubectl get applications -A ( if secrets are still degraded >> go to ArgoCD >> external secrets >> sync. If still degraded >> delete clustersecretstore) "
+ current_step=5
+ save_state
+fi
+
+# Step 6
+if [[ $current_step -le 5 ]]; then
+ cd /workspaces/glueops/$CLUSTER/manifests
+
+ # Function to render templates
+ render_templates() {
+   local template_dir="$1"
+   local target_dir="$PWD"
+  
+   # Split cluster name to different parts
+
+   IFS='.' read -r ENV TENANT DOMAIN <<< "$CLUSTER"
+
+   unset process_webacl
+  
+   until [ "$process_webacl" == "yes" ] || [ "$process_webacl" == "no" ]; do
+     # Webacl manifest creating
+     read -p "Do you want to create webacl.yaml manifest? Type 'yes' or 'no': " process_webacl
+
+     # Checking of input
+     if [ "$process_webacl" != "yes" ] && [ "$process_webacl" != "no" ]; then
+       echo "Invalid input. Please enter 'yes' or 'no'."
+     fi
+   done
+
+   # Define webacl manifest fullname
+   WEBACL="webacl.yaml"
+
+   if [ "$process_webacl" == no ]; then
+   echo "File processing skipped for $WEBACL."
+   fi
+
+   unset process_file
+
+   until [ "$process_file" == "yes" ] || [ "$process_file" == "no" ]; do
+     # Ecrregcred manifest creating
+     read -p "Do you want to create ecr-regcred.yaml manifest? Type 'yes' or 'no': " process_file
+
+     # Checking of input
+     if [ "$process_file" != "yes" ] && [ "$process_file" != "no" ]; then
+       echo "Invalid input. Please enter 'yes' or 'no'."
+     fi
+   done
+
+   # Define ecrregcred manifest fullname
+   REGCRED="ecr-regcred.yaml"
+
+   if [ "$process_file" == no ]; then
+     echo "File processing skipped for $REGCRED."
+   else
+     read -p "Enter access-key-id for ecr-regcred: " valueid
+     read -p "Enter secret-access-key: " valuesecret
+   fi
+
+   unset use_defaultorg
+   unset use_defaultrepo
+  
+   until [ "$use_defaultorg" == "yes" ] || [ "$use_defaultorg" == "no" ]; do
+     # Organization path
+     read -p "Do you use default organization(example-tenant)? Type 'yes' or 'no': " use_defaultorg
+
+     # Checking of input
+     if [ "$use_defaultorg" != "yes" ] && [ "$use_defaultorg" != "no" ]; then
+       echo "Invalid input. Please enter 'yes' or 'no'."
+     fi
+   done
+  
+   if [ "$use_defaultorg" == yes ]; then
+     org_name="example-tenant"
+   else
+     read -p "Enter organization name: " org_name
+   fi
+
+   until [ "$use_defaultrepo" == "yes" ] || [ "$use_defaultrepo" == "no" ]; do
+     # Repository path
+     read -p "Do you use default repository (deployment-configurations)? Type 'yes' or 'no': " use_defaultrepo
+
+     # Checking of input
+     if [ "$use_defaultrepo" != "yes" ] && [ "$use_defaultrepo" != "no" ]; then
+       echo "Invalid input. Please enter 'yes' or 'no'."
+     fi
+   done
+
+   if [ "$use_defaultrepo" == yes ]; then
+     repo_name="deployment-configurations"
+   else
+     read -p "Enter repository name: " repo_name
+   fi
+
+   # Create the target directory if it doesn't exist
+   mkdir -p "$target_dir"
+
+   # Loop through the template files in the template directory
+   for template_file in "$template_dir"/*; do
+     if [ -f "$template_file" ]; then
+       # Extract the filename without the path
+       template_filename=$(basename "$template_file")
+
+       # Replace the placeholder with the user-entered value and save it to the target directory
+       if  [ "$process_file" == yes ] || [ "$template_filename" != "$REGCRED" ]; then
+         if [ "$process_webacl" == yes ] || [ "$template_filename" != "$WEBACL" ]; then
+         sed "s/cluster_env/$ENV/g; s/CLUSTER_VARIABLE/$CLUSTER/g; s/key_id/$valueid/g; s/key_value/$valuesecret/g; s/example-tenant/$org_name/g; s/deployment-configurations/$repo_name/g" "$template_file" > "$target_dir/$template_filename"
+         fi
+       fi
+     fi
+   done
+   echo "Templates have been rendered and saved to $target_dir."
+}
+
+ # Call the function with the template and target directories
+ render_templates "../../qa-fullrun/AWS/manifeststemplates" 
+ sleep 5
+ yolo
+ git status
+ read -n 1 -s -r -p " Press any key to continue if you agree to add all the changes "
+ git add -A
+ git status
+ read -n 1 -s -r -p " Press any key to continue if you agree to commit "
+ git commit
+ read -n 1 -s -r -p " Press any key to continue if you agree to push the changes "
+ git push
+ current_step=6
+ save_state
+fi
 
 unset update
 
