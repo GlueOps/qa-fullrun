@@ -42,6 +42,7 @@ fi
 
 # Step 1
 if [[ $current_step -le 0 ]]; then
+ yolo
  cd /workspaces/glueops
  gh repo clone development-captains/$CLUSTER
  gh repo clone $FULLTENANT/deployment-configurations
@@ -53,6 +54,7 @@ fi
 
 # Step 2
 if [[ $current_step -le 1 ]]; then
+ yolo
  cd /workspaces/glueops
  # Hints
  echo "1. Move to https://github.com/development-captains/$CLUSTER , find "AWS" >> "Deploy Kubernetes" , click on "Launch a CloudShell" hyperlink "
@@ -73,6 +75,8 @@ fi
 
 # Step 3
 if [[ $current_step -le 2 ]]; then
+ yolo
+ source /workspaces/glueops/$CLUSTER/.env
  read -n 1 -s -r -p "Press any key to continue "
  cd /workspaces/glueops
  # 1st piece
@@ -102,7 +106,7 @@ if [[ $current_step -le 2 ]]; then
    done
 
    echo "main.tf is successfully created in $target_dir."
-}
+ }
 
  # Call the function with the template and target directories
  render_templates "../../../qa-fullrun/AWS/templates" 
@@ -154,7 +158,7 @@ if [[ $current_step -le 2 ]]; then
    done
 
    echo "calico.yaml is successfully created in $target_dir."
-}
+ }
 
  render_templates2 "../qa-fullrun/AWS/templates2" 
 
@@ -184,6 +188,8 @@ fi
 
 # Step 4
 if [[ $current_step -le 3 ]]; then
+ yolo
+ source /workspaces/glueops/$CLUSTER/.env
  cd /workspaces/glueops/$CLUSTER
  echo "1. Move to https://github.com/development-captains/$CLUSTER , find Deploying GlueOps the Platform >> Deploy ArgoCD , copy command , split the terminal , enter yolo, enter source /workspaces/glueops/$CLUSTER/.env , enter command in splited terminal , wait untill 3 of 3 argocd-redis-ha-server are ready , press ctrl + c (use kubectl get pods -n glueops-core command for monitoring).  "
  echo "2. Move back to https://github.com/development-captains/$CLUSTER , find Deploying GlueOps the Platform >> Deploy the GlueOps Platform , copy command , move back to splited terinal , enter command , wait untill all are sync (only one health status should be degraded ) , press ctrl + c (use kubectl get applications -n glueops-core for monitoring) ( if some of the apps are processing for long time then: 1. kubectl get certificates -A 2. kubectl delete pods --all -n glueops-core-cert-manager).  "
@@ -194,6 +200,8 @@ fi
 
 # Step 5
 if [[ $current_step -le 4 ]]; then
+ yolo
+ source /workspaces/glueops/$CLUSTER/.env
  read -n 1 -s -r -p "Press any key to continue when all actions above are done"
  cd /workspaces/glueops/$CLUSTER
  kubectl get pods -n glueops-core-vault
@@ -215,6 +223,8 @@ fi
 
 # Step 6
 if [[ $current_step -le 5 ]]; then
+ yolo
+ source /workspaces/glueops/$CLUSTER/.env
  cd /workspaces/glueops/$CLUSTER/manifests
 
  # Function to render templates
@@ -320,7 +330,7 @@ if [[ $current_step -le 5 ]]; then
      fi
    done
    echo "Templates have been rendered and saved to $target_dir."
-}
+ }
 
  # Call the function with the template and target directories
  render_templates "../../qa-fullrun/AWS/manifeststemplates" 
@@ -340,6 +350,8 @@ fi
 
 # Step 7
 if [[ $current_step -le 6 ]]; then
+ yolo
+ source /workspaces/glueops/$CLUSTER/.env
  cd /workspaces/glueops/$CLUSTER/manifests
  unset update
 
@@ -356,6 +368,8 @@ fi
 
 # Step 8
 if [[ $current_step -le 7 ]]; then
+ yolo
+ source /workspaces/glueops/$CLUSTER/.env
  if [ "$update" != "no" ]; then
   cd /workspaces/glueops/$CLUSTER/manifests
   echo -e "1. Move to https://github.com/GlueOps/terraform-module-cloud-multy-prerequisites. \n2. Select the required version (usually from branch). \n3. Move to https://github.com/internal-GlueOps/development-infrastructure/blob/main/tenants/$TENANT/tf/tenant.tf .\n4. Insert verison into the 2nd row of the code (after ref=).\n5. Save changes and manage them in Terraform."
@@ -383,6 +397,8 @@ fi
 
 # Step 9
 if [[ $current_step -le 8 ]]; then
+ yolo
+ source /workspaces/glueops/$CLUSTER/.env
  cd /workspaces/glueops/$CLUSTER/manifests
  echo -e "1. Move to Argo CD (https://argocd.$CLUSTER).\n2. Login with github SSO (if still not logined in).\n3. Click to glueops-core/captain-manifests.\n4. Check whether all manifests are created (usually 8 on 2nd column) "
  read -n 1 -s -r -p " Press any key to continue if all manifests are present and working"
@@ -411,6 +427,8 @@ fi
 
 # Step 10
 if [[ $current_step -le 9 ]]; then
+ yolo
+ source /workspaces/glueops/$CLUSTER/.env
  cd /workspaces/glueops/$CLUSTER/manifests
  echo -e "Confirm all ArgoCD apps are healthy in UI: \n1. Move to argocd. \n2. Check the "SYNC STATUS" and the "HEALTH" status (in the left dropdown menu). \n3. Select "items per page: all" (right top corner). \n4. Check all apps manually (if some is out of sync - enter there >> try sync it manually).  "
  read -n 1 -s -r -p " Press any key to continue if all actions above are performed without issues"
@@ -539,6 +557,8 @@ fi
 
 # Step 11
 if [[ $current_step -le 10 ]]; then
+ yolo
+ source /workspaces/glueops/$CLUSTER/.env
  cd /workspaces/glueops
  echo -e "Grafana / Loki \n1. https://grafana.$CLUSTER/ >> alerting(hamburger) >> alerting >> alert rules >> search by data sources: loki (should be 3 alerts). \n2. https://grafana.$CLUSTER/alerting/list - should be 1 required alert. \n3. Grafana >> hamburger >> dashboards >> ingress by Host >> watch correct IP tracking according own IP and right ammount of requests adding. \n4. https://grafana.$CLUSTER.rocks/ >> hamburger >> dashboards >> DevOps - ArgoCD >> check wheter all charts are functioning "
  read -n 1 -s -r -p " Press any key to continue if all steps above are completed"
@@ -550,6 +570,8 @@ fi
 
 # Step 12
 if [[ $current_step -le 11 ]]; then
+ yolo
+ source /workspaces/glueops/$CLUSTER/.env
  cd /workspaces/glueops/$CLUSTER/manifests
  curl https://raw.githubusercontent.com/GlueOps/metacontroller-operator-waf-web-acl/main/manifests/webacls.yaml -o webacl.yaml
  git status
@@ -568,6 +590,8 @@ fi
 
 # Step 13
 if [[ $current_step -le 12 ]]; then
+ yolo
+ source /workspaces/glueops/$CLUSTER/.env
  cd /workspaces/glueops/$CLUSTER/manifests
  unset rtlmt
  unset nmprvd
@@ -590,6 +614,8 @@ fi
 
 # Step 14 
 if [[ $current_step -le 13 ]]; then
+ yolo
+ source /workspaces/glueops/$CLUSTER/.env
  cd /workspaces/glueops/$CLUSTER/manifests
  rm webacl.yaml
  git status
@@ -608,6 +634,8 @@ fi
 
 # Step 15
 if [[ current_step -le 14 ]]; then
+ yolo
+ source /workspaces/glueops/$CLUSTER/.env
  cd /workspaces/glueops/$CLUSTER/manifests
  curl https://raw.githubusercontent.com/GlueOps/metacontroller-operator-waf-web-acl/main/manifests/webacls.yaml -o webacl.yaml
  git status
@@ -624,6 +652,8 @@ fi
 
 # Step 16
 if [[ $current_step -le 15 ]]; then
+ yolo
+ source /workspaces/glueops/$CLUSTER/.env
  cd /workspaces/glueops/$CLUSTER/manifests
  echo -e "\n1. Move to https://github.com/$FULLTENANT/deployment-configurations/blob/main/apps/waf-test/envs/prod/values.yaml.\n2. Delete comments from rows 44-61.\n3. Commit changes >> Commit directly to the main branch.\n4. Move to https://argocd.$CLUSTER >> glueops-core/captain-manifests >> waf-test-prod.\n5. Check whether 3 wafs are appeared. "
  read -n 1 -s -r -p " Press any key to continue "
@@ -639,6 +669,8 @@ fi
 
 # Step 17
 if [[ $current_step -le 16 ]]; then
+ yolo
+ source /workspaces/glueops/$CLUSTER/.env
  cd /workspaces/glueops/$CLUSTER/manifests
  unset nwcstcrt
 
@@ -680,6 +712,8 @@ fi
 
 # Step 18
 if [[ $current_step -le 17 ]]; then
+ yolo
+ source /workspaces/glueops/$CLUSTER/.env
  cd /workspaces/glueops/$CLUSTER/manifests
  echo -e "\n1. ArgoCD: all WAFs should become healthy.\n2. AWS($city account):\n- there are 3 distributions in cloudfront\n- there are 3 certificates in ACM(certificate manager) "
  read -n 1 -s -r -p " Press any key to continue. "
@@ -697,6 +731,8 @@ fi
 
 # Step 19
 if [[ $current_step -le 18 ]]; then
+ yolo
+ source /workspaces/glueops/$CLUSTER/.env
  cd /workspaces/glueops/$CLUSTER/manifests
  echo -e "\n1. Move to https://github.com/$FULLTENANT/deployment-configurations/blob/main/apps/waf-test/envs/prod/values.yaml .\n2. Edit >> put customCertificateSecretStorePath (select all text in raw) in those WAF, where it is not and delete in those where it is (usually swap between second and third ones).\n3. Commit changes >> commit directly to the main branch. "
  read -n 1 -s -r -p " Press any key to continue. "
@@ -710,6 +746,8 @@ fi
 
 # Step 20
 if [[ $current_step -le 19 ]]; then
+ yolo
+ source /workspaces/glueops/$CLUSTER/.env
  cd /workspaces/glueops/$CLUSTER/manifests
  URL="https://3.$city.waf.qa-glueops.com"
  COUNT=120
@@ -734,6 +772,8 @@ fi
 
 # Step 21
 if [[ $current_step -le 20 ]]; then
+ yolo
+ source /workspaces/glueops/$CLUSTER/.env
  cd /workspaces/glueops/$CLUSTER/manifests
  echo -e "\n1. Move to https://github.com/$FULLTENANT/deployment-configurations/blob/main/apps/waf-test/envs/prod/values.yaml \n2. Edit this file >> comment all WAF part (from row 44 to the end.) >> commit changes >> commit directly to the main branch.\n3. Move to the codespace.\n4. Comment webacl.yaml. " 
  read -n 1 -s -r -p " Press any key to continue. "
@@ -751,6 +791,8 @@ fi
 
 # Step 22
 if [[ $current_step -le 21 ]]; then
+ yolo
+ source /workspaces/glueops/$CLUSTER/.env
  cd /workspaces/glueops/$CLUSTER/manifests
  echo -e "\n1. Move to https://argocd.$CLUSTER .\n2. Enter glueops-core/captain-manifests.\n3. Pay attention wheter 4 webacl manifests are deleted or not (should be 8 manifests available in 2nd column).\n4. Enter to waf-test-prod (3 column).\n5. Wait untill 3 wafs are deleted. "
  read -n 1 -s -r -p " Press any key to continue when wafs are deleted "
