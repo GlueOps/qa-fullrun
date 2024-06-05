@@ -272,7 +272,7 @@ if [[ $current_step -le 5 ]]; then
 
    if [ "$process_file" == no ]; then
      echo "File processing skipped for $REGCRED."
-   
+   else
      read -p "Enter access-key-id for ecr-regcred: " valueid
      read -p "Enter secret-access-key: " valuesecret
    fi
@@ -292,7 +292,7 @@ if [[ $current_step -le 5 ]]; then
   
    if [ "$use_defaultorg" == yes ]; then
      org_name="example-tenant"
-   
+   else
      read -p "Enter organization name: " org_name
    fi
 
@@ -308,7 +308,7 @@ if [[ $current_step -le 5 ]]; then
 
    if [ "$use_defaultrepo" == yes ]; then
      repo_name="deployment-configurations"
-   
+   else
      read -p "Enter repository name: " repo_name
    fi
 
@@ -500,7 +500,7 @@ if [[ $current_step -le 9 ]]; then
      read -p "Enter the tag name for the release: " TAG_NAME
      if [ -n "$TAG_NAME" ]; then
          break
-     
+     else
          echo "Tag name cannot be empty. Please enter a valid tag name."
      fi
  done
