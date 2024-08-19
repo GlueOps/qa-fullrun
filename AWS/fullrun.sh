@@ -163,7 +163,7 @@ echo "$commands"
 
 bash -c "$commands"
 
-sed -i 's/^#//' terraform/kubernetes/main.tf
+sed -i 's/#//' terraform/kubernetes/main.tf.
 
 cd /workspaces/glueops/$CLUSTER/terraform/kubernetes
 
