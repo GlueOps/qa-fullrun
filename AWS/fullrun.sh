@@ -174,7 +174,7 @@ if [[ $current_step -le 2 ]]; then
 
  bash -c "$commands"
 
- sed -i 's/#//' terraform/kubernetes/main.tf.
+ sed -i 's/#//' terraform/kubernetes/main.tf
 
  cd /workspaces/glueops/$CLUSTER/terraform/kubernetes
 
