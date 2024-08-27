@@ -41,7 +41,7 @@ spec:
             appName: '{{ index .path.segments 1 | replace "." "-"  | replace "_" "-" }}-{{ .path.basenameNormalized }}'
 
         repoURL: https://helm.gpkg.io/project-template
-        targetRevision: 0.4.0
+        targetRevision: 0.6.0
       - repoURL: https://github.com/example-tenant/deployment-configurations
         targetRevision: main
         ref: values
