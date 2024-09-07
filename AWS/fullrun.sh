@@ -227,13 +227,14 @@ if [[ $current_step -le 5 ]]; then
  source /workspaces/glueops/$CLUSTER/.env
  cd /workspaces/glueops/$CLUSTER/manifests
 
-curl https://raw.githubusercontent.com/GlueOps/qa-tools/v20240827/manifests-ecr-protected-script/templates/appproject.yaml -o ../../qa-fullrun/AWS/manifeststemplates
-curl https://raw.githubusercontent.com/GlueOps/qa-tools/v20240827/manifests-ecr-protected-script/templates/appset.yaml -o ../../qa-fullrun/AWS/manifeststemplates
-curl https://raw.githubusercontent.com/GlueOps/qa-tools/v20240827/manifests-ecr-protected-script/templates/dockerregistry.yaml -o ../../qa-fullrun/AWS/manifeststemplates
-curl https://raw.githubusercontent.com/GlueOps/qa-tools/v20240827/manifests-ecr-protected-script/templates/ecr-regcred.yaml -o ../../qa-fullrun/AWS/manifeststemplates
-curl https://raw.githubusercontent.com/GlueOps/qa-tools/v20240827/manifests-ecr-protected-script/templates/namespace.yaml -o ../../qa-fullrun/AWS/manifeststemplates
-curl https://raw.githubusercontent.com/GlueOps/qa-tools/v20240827/manifests-ecr-protected-script/templates/pullrequestapplicationset.yaml -o ../../qa-fullrun/AWS/manifeststemplates
-curl https://raw.githubusercontent.com/GlueOps/qa-tools/v20240827/manifests-ecr-protected-script/templates/webacl.yaml -o ../../qa-fullrun/AWS/manifeststemplates 
+mkdir -p ../../qa-fullrun/AWS/manifeststemplates
+curl https://raw.githubusercontent.com/GlueOps/qa-tools/v20240827/manifests-ecr-protected-script/templates/appproject.yaml -o ../../qa-fullrun/AWS/manifeststemplates/appproject.yaml
+curl https://raw.githubusercontent.com/GlueOps/qa-tools/v20240827/manifests-ecr-protected-script/templates/appset.yaml -o ../../qa-fullrun/AWS/manifeststemplates/appset.yaml
+curl https://raw.githubusercontent.com/GlueOps/qa-tools/v20240827/manifests-ecr-protected-script/templates/dockerregistry.yaml -o ../../qa-fullrun/AWS/manifeststemplates/dockerregistry.yaml
+curl https://raw.githubusercontent.com/GlueOps/qa-tools/v20240827/manifests-ecr-protected-script/templates/ecr-regcred.yaml -o ../../qa-fullrun/AWS/manifeststemplates/ecr-regcred.yaml
+curl https://raw.githubusercontent.com/GlueOps/qa-tools/v20240827/manifests-ecr-protected-script/templates/namespace.yaml -o ../../qa-fullrun/AWS/manifeststemplates/namespace.yaml
+curl https://raw.githubusercontent.com/GlueOps/qa-tools/v20240827/manifests-ecr-protected-script/templates/pullrequestapplicationset.yaml -o ../../qa-fullrun/AWS/manifeststemplates/pullrequestapplicationset.yaml
+curl https://raw.githubusercontent.com/GlueOps/qa-tools/v20240827/manifests-ecr-protected-script/templates/webacl.yaml -o ../../qa-fullrun/AWS/manifeststemplates/webacl.yaml
 
 
  # Function to render templates
