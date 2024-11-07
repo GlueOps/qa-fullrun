@@ -231,7 +231,6 @@ curl https://raw.githubusercontent.com/GlueOps/qa-tools/v20240827/manifests-ecr-
 curl https://raw.githubusercontent.com/GlueOps/qa-tools/v20240827/manifests-ecr-protected-script/templates/ecr-regcred.yaml -o ../../qa-fullrun/AWS/manifeststemplates/ecr-regcred.yaml
 curl https://raw.githubusercontent.com/GlueOps/qa-tools/v20240827/manifests-ecr-protected-script/templates/namespace.yaml -o ../../qa-fullrun/AWS/manifeststemplates/namespace.yaml
 curl https://raw.githubusercontent.com/GlueOps/qa-tools/v20240827/manifests-ecr-protected-script/templates/pullrequestapplicationset.yaml -o ../../qa-fullrun/AWS/manifeststemplates/pullrequestapplicationset.yaml
-curl https://raw.githubusercontent.com/GlueOps/qa-tools/v20240827/manifests-ecr-protected-script/templates/webacl.yaml -o ../../qa-fullrun/AWS/manifeststemplates/webacl.yaml
 
 
  # Function to render templates
@@ -243,24 +242,6 @@ curl https://raw.githubusercontent.com/GlueOps/qa-tools/v20240827/manifests-ecr-
 
    IFS='.' read -r ENV TENANT DOMAIN <<< "$CLUSTER"
 
-   unset process_webacl
-  
-   until [ "$process_webacl" == "yes" ] || [ "$process_webacl" == "no" ]; do
-     # Webacl manifest creating
-     read -p "Do you want to create webacl.yaml manifest? Type 'yes' or 'no': " process_webacl
-
-     # Checking of input
-     if [ "$process_webacl" != "yes" ] && [ "$process_webacl" != "no" ]; then
-       echo "Invalid input. Please enter 'yes' or 'no'."
-     fi
-   done
-
-   # Define webacl manifest fullname
-   WEBACL="webacl.yaml"
-
-   if [ "$process_webacl" == no ]; then
-   echo "File processing skipped for $WEBACL."
-   fi
 
    unset process_file
 
@@ -330,9 +311,7 @@ curl https://raw.githubusercontent.com/GlueOps/qa-tools/v20240827/manifests-ecr-
 
        # Replace the placeholder with the user-entered value and save it to the target directory
        if  [ "$process_file" == yes ] || [ "$template_filename" != "$REGCRED" ]; then
-         if [ "$process_webacl" == yes ] || [ "$template_filename" != "$WEBACL" ]; then
          sed "s/cluster_env/$ENV/g; s/CLUSTER_VARIABLE/$CLUSTER/g; s/key_id/$valueid/g; s/key_value/$valuesecret/g; s/example-tenant/$org_name/g; s/deployment-configurations/$repo_name/g" "$template_file" > "$target_dir/$template_filename"
-         fi
        fi
      fi
    done
@@ -575,238 +554,11 @@ if [[ $current_step -le 10 ]]; then
  save_state
 fi
 
-# Step 12
-if [[ $current_step -le 11 ]]; then
- yolo
- source /workspaces/glueops/$CLUSTER/.env
- cd /workspaces/glueops/$CLUSTER/manifests
- curl https://raw.githubusercontent.com/GlueOps/metacontroller-operator-waf-web-acl/main/manifests/webacls.yaml -o webacl.yaml
- git status
- read -n 1 -s -r -p " Press any key to continue if you agree to add all the changes "
- git add -A
- git status
- read -n 1 -s -r -p " Press any key to continue if you agree to commit "
- git commit
- read -n 1 -s -r -p " Press any key to continue if you agree to push the changes "
- git push
- echo -e "\n1. Move to https://argocd.$CLUSTER >> captain-manifests. There should be 4 new healthy manifests (2nd row).\n2. Move to https://aws.amazon.com/ .\n3. Sign In to the Concole.\n4. Click on the key extention (right top corner of the browser) and switch to "$wafacc" account.\n5. Enter to WAF & Shield (can find in search as an option) >> Web ACLs (left part of the screen).\n6. Select global region (dropdown in the middle).\n There should be 4.\n1. Click for eg. on the primary one >> rules >> too-many-requests-per-source-ip >> pay attention to rate limit (100)  "
- read -n 1 -s -r -p " Press any key to continue if you everything above is okay and you are ready "
- current_step=12
- save_state
-fi
-
-# Step 13
-if [[ $current_step -le 12 ]]; then
- yolo
- source /workspaces/glueops/$CLUSTER/.env
- cd /workspaces/glueops/$CLUSTER/manifests
- unset rtlmt
- unset nmprvd
- read -p "Enter new limit(for eg 110) " rtlmt
- read -p "Enter the new name to note, by whom it's provided " nmprvd
- sed -i -e "106s/100/$rtlmt/" -e "63s/GlueOps/$nmprvd/" webacl.yaml
- git status
- read -n 1 -s -r -p " Press any key to continue if you agree to add all the changes "
- git add -A
- git status
- read -n 1 -s -r -p " Press any key to continue if you agree to commit "
- git commit
- read -n 1 -s -r -p " Press any key to continue if you agree to push the changes "
- git push
- echo -e "\n1. Back to Amazon.\n2. Refresh and check wheter ratelimit is updated.\n3. Move back to general webacl's description and check whether description is changed  "
- read -n 1 -s -r -p " Press any key to continue "
- current_step=13
- save_state
-fi
-
-# Step 14 
-if [[ $current_step -le 13 ]]; then
- yolo
- source /workspaces/glueops/$CLUSTER/.env
- cd /workspaces/glueops/$CLUSTER/manifests
- rm webacl.yaml
- git status
- read -n 1 -s -r -p " Press any key to continue if you agree to add all the changes "
- git add -A
- git status
- read -n 1 -s -r -p " Press any key to continue if you agree to commit "
- git commit
- read -n 1 -s -r -p " Press any key to continue if you agree to push the changes "
- git push
- echo -e "\n1. Go to Amazon.\n2. Refresh and ensure that web ACLs are deleted  "
- read -n 1 -s -r -p " Press any key to continue "
- current_step=14
- save_state
-fi
-
-# Step 15
-if [[ current_step -le 14 ]]; then
- yolo
- source /workspaces/glueops/$CLUSTER/.env
- cd /workspaces/glueops/$CLUSTER/manifests
- curl https://raw.githubusercontent.com/GlueOps/metacontroller-operator-waf-web-acl/main/manifests/webacls.yaml -o webacl.yaml
- git status
- read -n 1 -s -r -p " Press any key to continue if you agree to add all the changes "
- git add -A
- git status
- read -n 1 -s -r -p " Press any key to continue if you agree to commit "
- git commit
- read -n 1 -s -r -p " Press any key to continue if you agree to push the changes "
- git push
- current_step=15
- save_state
-fi
-
-# Step 16
-if [[ $current_step -le 15 ]]; then
- yolo
- source /workspaces/glueops/$CLUSTER/.env
- cd /workspaces/glueops/$CLUSTER/manifests
- echo -e "\n1. Move to https://github.com/$FULLTENANT/deployment-configurations/blob/main/apps/waf-test/envs/prod/values.yaml.\n2. Delete comments from rows 44-61.\n3. Commit changes >> Commit directly to the main branch.\n4. Move to https://argocd.$CLUSTER >> glueops-core/captain-manifests >> waf-test-prod.\n5. Check whether 3 wafs are appeared. "
- read -n 1 -s -r -p " Press any key to continue "
- echo -e "\n1. Move to Amazon.\n2. ACM in search (certificate manager).\n3. List certificates.\n4. Change region to us-east-1 (N. Virginia).\n5. Enter to those, which starts from 1 (according to firstwaf in ArgoCD).\n6. Compare copied CNAME name and value with AroCD's.  "
- read -n 1 -s -r -p " Press any key to continue "
- echo -e "\n1. Copy CNAME name in ArgoCD (for eg. inside firstwaf >> all line 34).\n2. Move to the codespace.\n3. Split terminal.\n4. Use dig coppied text command. \n5. Compare name and value with ArgoCD's.\n6. Close splited terminal.  "
- read -n 1 -s -r -p " Press any key to continue "
- echo -e "\n1. Move back to Amazon.\n2. Search "cloudfront" (there should be 2 issued distributions according to WAF's).  "
- read -n 1 -s -r -p " Press any key to continue "
- current_step=16
- save_state
-fi
-
-# Step 17
-if [[ $current_step -le 16 ]]; then
- yolo
- source /workspaces/glueops/$CLUSTER/.env
- cd /workspaces/glueops/$CLUSTER/manifests
- unset nwcstcrt
-
- until [ "$nwcstcrt" == "yes" ] || [ "$nwcstcrt" == "no" ]; do
-   read -p "Do you want to create new custom certificate? Type 'yes' or 'no': " nwcstcrt
-
-   if [ "$nwcstcrt" != "yes" ] && [ "$nwcstcrt" != "no" ]; then
-     echo "Invalid input. Please enter 'yes' or 'no'."
-   fi
- done
-
- if [ "$nwcstcrt" != "no" ]; then
-   echo -e " Several hints for actions below:\n1. First input - enter working email. Second input - type yes. Third input - type no. Fourth input - *.$city.waf.qa-glueops.com.\n2. After fourth input is entered - copy value that has appeared as output.\n3. Move to AWS >> change account to qa-shared-resources >> search route53 >> hosted zones >> $city.waf.qa-glueops.com.\n4. Find those record name, which is the same as in codespace output.\n5. Select it >> Edit record >> paste value in value field >> save.\n6. Move back to codespace.\n7. Copy name fully in output.\n8. Split terminal.\n9. dig txt (copied DNS txt record) in the new terminal >> compare the values.\n10. Exit splited terminal, finally press enter. "
-   read -n 1 -s -r -p " Press any key to  start performing steps. "
-   sudo certbot certonly --manual --preferred-challenges dns
-   sudo ls /etc/letsencrypt/live/$city.waf.qa-glueops.com/
-   echo -e "\n1. Enter to https://vault.$CLUSTER with editor role.\n2. Secret >> Create secret:\n Path for this secret: ssl-cert/wildcard.$city.waf.qa-glueops.com\n key: CERTIFICATE\n value: get when ready "
-   read -n 1 -s -r -p " Press any key to get the value "
-   sudo cat /etc/letsencrypt/live/$city.waf.qa-glueops.com/cert.pem
-   echo -e "\n1. Save. \n2. Create new version:\n key: PRIVATE_KEY (add not replace old value)\n value: get when ready"
-   read -n 1 -s -r -p " Press any key to get the value "
-   sudo cat /etc/letsencrypt/live/$city.waf.qa-glueops.com/privkey.pem
-   echo -e "\n key: CERTIFICATE_CHAIN\n value: get when ready "
-   read -n 1 -s -r -p " Press any key to get the value "
-   sudo cat /etc/letsencrypt/live/$city.waf.qa-glueops.com/chain.pem
-   echo -e "\n Save "
-   read -n 1 -s -r -p " Press any key to continue "
- else
-   echo -e "\n1. Enter to https://vault.$CLUSTER with editor role.\n2. Secret >> Create secret:\n Path for this secret: ssl-cert/wildcard.$city.waf.qa-glueops.com\n key: CERTIFICATE\n value: copy from where it is saved "
-   read -n 1 -s -r -p " Press any key to continue. "
-   echo -e "\n1. Save. \n2. Create new version:\n key: PRIVATE_KEY (add not replace old value)\n value: copy from where it is saved"
-   read -n 1 -s -r -p " Press any key to continue. "
-   echo -e "\n key: CERTIFICATE_CHAIN\n value: copy from where it is saved.\n Save. "
-   read -n 1 -s -r -p " Press any key to continue. "
- fi
- current_step=17
- save_state
-fi
-
-# Step 18
-if [[ $current_step -le 17 ]]; then
- yolo
- source /workspaces/glueops/$CLUSTER/.env
- cd /workspaces/glueops/$CLUSTER/manifests
- echo -e "\n1. ArgoCD: all WAFs should become healthy.\n2. AWS($city account):\n- there are 3 distributions in cloudfront\n- there are 3 certificates in ACM(certificate manager) "
- read -n 1 -s -r -p " Press any key to continue. "
- echo -e "\n1. Move to https://argocd.$CLUSTER >>captain-manifests >> waf-test-prod >> waf-test-prod-firstwaf \n2. Copy cloudfront_url value\n3. Move to AWS >> qa-shared-resources >> route53 in search >> hosted zones >> $city.waf.qa-glueops.com.\n4. Create record:\n - paste the value (cloudfront_url);\n paste 1 in the record name;\n record type - CNAME;\n TTL - 1 min;\n Create records "
- read -n 1 -s -r -p " Press any key to continue. "
- echo -e "\nRepeat the same with waf-test-prod-secondwaf by analogy (paste 2 in the record name) "
- read -n 1 -s -r -p " Press any key to continue. "
- echo -e "\nRepeat the same with waf-test-prod-thirdwafmultipledomains by analogy (create 3 different records (3,4,5 in the record name) with the same cloudfront_url) "
- read -n 1 -s -r -p " Press any key to continue. "
- echo -e "\n1. Move to https://argocd.$CLUSTER >> captain-manifests >> waf-test-prod >> waf-test-prod-public.\n2. Check whether encryption is those one what is selected (Lets encrypt - for custom certs)(check all 5 apps).\nTo check encryption:\n1. Select app (each one from five).\n2. Click on View site information(left top corner near Refresh the page icon).\n3. Click on Connection is secure.\n4. Click on Certificate is valid. \n (to check which encryption for which WAF is set up (Amazon or Let's encrypt) you can here https://github.com/$FULLTENANT/deployment-configurations/blob/main/apps/waf-test/envs/prod/values.yaml)"
- read -n 1 -s -r -p " Press any key to continue. "
- current_step=18
- save_state
-fi
-
-# Step 19
-if [[ $current_step -le 18 ]]; then
- yolo
- source /workspaces/glueops/$CLUSTER/.env
- cd /workspaces/glueops/$CLUSTER/manifests
- echo -e "\n1. Move to https://github.com/$FULLTENANT/deployment-configurations/blob/main/apps/waf-test/envs/prod/values.yaml .\n2. Edit >> put customCertificateSecretStorePath (select all text in raw) in those WAF, where it is not and delete in those where it is (usually swap between second and third ones).\n3. Commit changes >> commit directly to the main branch. "
- read -n 1 -s -r -p " Press any key to continue. "
- echo -e "\n1. Move to https://argocd.$CLUSTER >> captain-manifests >> waf-test-prod >> waf-test-prod-public.\n2. Check whether encryptions are changed.\n IF the changes are not displayed there are several options:\n1. Try to refresh app pages.\n2. Open pages in Incognito mode.\n3. Split terminal and use next commands for each app to check manually in terminal:\ncurl 1.$city.waf.qa-glueops.com -vIL\ncurl 2.$city.waf.qa-glueops.com -vIL\ncurl 3.$city.waf.qa-glueops.com -vIL\ncurl 4.$city.waf.qa-glueops.com -vIL\ncurl 5.$city.waf.qa-glueops.com -vIL "
- read -n 1 -s -r -p " Press any key to continue. "
- echo -e "\n1. Move to AWS ($city account) >> ACM >> check whether right certificates are active: whether there are in use with those type of encryption, which is configured (there should be usually 5 certs on this stage: 3 are in use and 2 are not).\n2. Move to cloudfront >> distributions >> 3 distributions are active (status - enabled). "
- read -n 1 -s -r -p " Press any key to continue. "
- current_step=19
- save_state
-fi
-
-# Step 20
-if [[ $current_step -le 19 ]]; then
- yolo
- source /workspaces/glueops/$CLUSTER/.env
- cd /workspaces/glueops/$CLUSTER/manifests
- URL="https://3.$city.waf.qa-glueops.com"
- COUNT=120
-
- for (( i=1; i<=$COUNT; i++ ))
- do
-    curl -s "$URL" > /dev/null
-    echo "Request $i completed"
- done
-
- echo -e "Please wait for 1 minute untill information is updating "
-
- sleep 60
-
- curl https://3.$city.waf.qa-glueops.com -v
-
- read -n 1 -s -r -p " Press any key to continue if there is Too many requests message "
-
- current_step=20
- save_state
-fi
-
-# Step 21
-if [[ $current_step -le 20 ]]; then
- yolo
- source /workspaces/glueops/$CLUSTER/.env
- cd /workspaces/glueops/$CLUSTER/manifests
- echo -e "\n1. Move to https://github.com/$FULLTENANT/deployment-configurations/blob/main/apps/waf-test/envs/prod/values.yaml \n2. Edit this file >> comment all WAF part (from row 44 to the end.) >> commit changes >> commit directly to the main branch.\n3. Move to the codespace.\n4. Comment webacl.yaml. " 
- read -n 1 -s -r -p " Press any key to continue. "
- git status
- read -n 1 -s -r -p " Press any key to continue if you agree to add all the changes "
- git add -A
- git status
- read -n 1 -s -r -p " Press any key to continue if you agree to commit "
- git commit
- read -n 1 -s -r -p " Press any key to continue if you agree to push the changes "
- git push
- current_step=21
- save_state
-fi
-
 # Step 22
 if [[ $current_step -le 21 ]]; then
  yolo
  source /workspaces/glueops/$CLUSTER/.env
  cd /workspaces/glueops/$CLUSTER/manifests
- echo -e "\n1. Move to https://argocd.$CLUSTER .\n2. Enter glueops-core/captain-manifests.\n3. Pay attention wheter 4 webacl manifests are deleted or not (should be 8 manifests available in 2nd column).\n4. Enter to waf-test-prod (3 column).\n5. Wait untill 3 wafs are deleted. "
- read -n 1 -s -r -p " Press any key to continue when wafs are deleted "
- echo -e "\n1. Move to AWS ($city account) >> WAF & Shield >> Web ACLs ( left side) >> change region to "Global" >> should be nothing there.\n2. ACM ($city account)  >> ceritficate manager >> all should be deleted after ArgoCD is done.\n3. Cloudfront ($city account) >> distributions  >> all is gone. "
- read -n 1 -s -r -p " Press any key to continue if everything above is deleted "
- echo -e "\n1. Move to qa-shared-resources account >> route53 >> hosted zones >> $city.waf.qa-glueops.com >> delete records that begins from 1/2/3/4/5 ."
- read -n 1 -s -r -p " Press any key to continue if are ready to start deleting/reverting process. "
  echo -e " You may perform next algorithms (AWS and GitHub) separately at the same time. Feel free to combine them in order to reduce time consuming.\n AWS teardown:\n1. Move to https://github.com/development-captains/$CLUSTER .\n2. Find Teardown Kubernetes >> AWS Teardown.\n3. Copy nuke command.\n4. Click on Launch a Cloudshell link.\n5. WARNING: SELECT ROOT ACCOUNT (Click on dropdown with account name at the right top >> click Switch back if root is not selected yet).\n6. Execute command several times (usually 3) for each account ($awsacc and $wafacc).\n NOTE: in about 5 minutes after 1st and 2nd run for each account you should press ctrl + c (stop executing) and execute command again.\n FINAL OUTPUT SHOULD BE: No resource to delete.\n7. Move back to https://github.com/development-captains/$CLUSTER >> find Delete Tenant Data From S3 >> copy command >> execute in CloudShell too by entering domain name.\nGitHub deleting/reverting:\n1. Move to https://github.com/internal-GlueOps/development-infrastructure/blob/main/tenants/$TENANT/tf/tenant.tf .\n2. Edit this file >> Delete cluster environments (rows 9-78 including).\n3. Commit changes >> Commit in the new branch.\n4. Create pull request >> click on Details on the right of Terraform icon >> wait untill plan is finished.\n5. Move back to pull request >> merge pull request >> confirm merge >> delete branch.\n6. Move back to Terraform >> runs >> manage run which is appeared (confirm and apply).\n7. Move to https://github.com/internal-GlueOps/development-infrastructure/pulls >> closed. \n8. Revert changes from the last pull request by analogy with applying the changes in Terraform. "
  current_step=22
  save_state
