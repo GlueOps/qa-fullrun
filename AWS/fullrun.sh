@@ -1,8 +1,5 @@
 #!/bin/bash
 
-source /home/vscode/.oh-my-zsh/custom/yolo.zsh
-source /home/vscode/.oh-my-zsh/custom/create-ghcr-regcred.zsh
-
 yolo
 
 if [ -f /workspaces/glueops/saved_variables ]; then
