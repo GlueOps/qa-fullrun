@@ -79,7 +79,9 @@ if [[ $current_step -le 2 ]]; then
  # 1st piece
  mkdir -p qa-fullrun/AWS/templates
  mkdir -p qa-fullrun/AWS/templates2
- curl https://raw.githubusercontent.com/GlueOps/terraform-module-cloud-aws-kubernetes-cluster/main/tests/main.tf -o qa-fullrun/AWS/templates/main.tf 
+ unset AWSEKS
+ read -p "Enter AWS/EKS version: " AWSEKS
+ curl https://raw.githubusercontent.com/GlueOps/terraform-module-cloud-aws-kubernetes-cluster/refs/tags/$AWSEKS/glueops-tests/main.tf -o qa-fullrun/AWS/templates/main.tf 
  cd /workspaces/glueops/$CLUSTER
  source $(pwd)/.env
  cd /workspaces/glueops/$CLUSTER/terraform/kubernetes
@@ -98,7 +100,7 @@ if [[ $current_step -le 2 ]]; then
        template_filename=$(basename "$template_file")
 
        # Replace the placeholder with the user-entered value and save it to the target directory
-       sed -e "s/761182885829/$value2/g" -e "s/\.\.\//git::https:\/\/github.com\/GlueOps\/terraform-module-cloud-aws-kubernetes-cluster.git/g" "$template_file" > "$target_dir/$template_filename"
+       sed -e "s/761182885829/$value2/g" -e "s/\.\.\//git::https:\/\/github.com\/GlueOps\/terraform-module-cloud-aws-kubernetes-cluster.git?ref=$AWSEKS/g" "$template_file" > "$target_dir/$template_filename"
      fi
    done
 
@@ -161,17 +163,14 @@ if [[ $current_step -le 2 ]]; then
 
  # 3d piece
 
- raw_link="https://raw.githubusercontent.com/wiki/GlueOps/terraform-module-cloud-aws-kubernetes-cluster/install-calico.md"
+ echo " Move to aws >> install calico "
+ echo " read -n 1 -s -r -p "Press any key when you are ready to perform step above "
 
- commands=$(curl -s "$raw_link")
+ cd /workspaces/glueops/$CLUSTER
 
- commands=$(echo "$commands" | sed '1d;$d') 
+ captain_utils
 
- echo "$commands"
-
- bash -c "$commands"
-
- sed -i 's/#//' terraform/kubernetes/main.tf
+ sed -i 's/    #//g' terraform/kubernetes/main.tf
 
  cd /workspaces/glueops/$CLUSTER/terraform/kubernetes
 
