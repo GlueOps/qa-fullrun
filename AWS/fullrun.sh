@@ -164,7 +164,7 @@ if [[ $current_step -le 2 ]]; then
  # 3d piece
 
  echo " Move to aws >> install calico "
- echo read -n 1 -s -r -p "Press any key when you are ready to perform step above "
+ read -n 1 -s -r -p "Press any key when you are ready to perform step above "
 
  cd /workspaces/glueops/$CLUSTER
 
