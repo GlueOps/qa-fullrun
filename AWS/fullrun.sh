@@ -187,9 +187,11 @@ if [[ $current_step -le 3 ]]; then
  yolo
  source /workspaces/glueops/$CLUSTER/.env
  cd /workspaces/glueops/$CLUSTER
- echo "1. Move to https://github.com/development-captains/$CLUSTER , find Deploying GlueOps the Platform >> Deploy ArgoCD , copy command , split the terminal , enter yolo, enter source /workspaces/glueops/$CLUSTER/.env , enter command in splited terminal , wait untill 3 of 3 argocd-redis-ha-server are ready , press ctrl + c (use kubectl get pods -n glueops-core command for monitoring).  "
- echo "2. Move back to https://github.com/development-captains/$CLUSTER , find Deploying GlueOps the Platform >> Deploy the GlueOps Platform , copy command , move back to splited terinal , enter command , wait untill all are sync (only one health status should be degraded ) , press ctrl + c (use kubectl get applications -n glueops-core for monitoring) ( if some of the apps are processing for long time then: 1. kubectl get certificates -A 2. kubectl delete pods --all -n glueops-core-cert-manager).  "
+ echo "1. Use captain_utils >> production >> ArgoCD >> approve changes >> split terinal, enter yolo in splited one , enter source /workspaces/glueops/$CLUSTER/.env, use kubectl get pods -n glueops-core command for monitoring whether 3 of 3 argocd-redis-ha-server are ready ( ready is the indicator to continue) "
+ echo "2. Move back to the terminal on the left > production >> GlueOpsPlatform >> approve changes >> move to terminal on the right >> use kubectl get applications -n glueops-core for monitoring. Only one app (secrets) should be degraded ( if some of the apps are processing for long time then: 1. kubectl get certificates -A 2. kubectl delete pods --all -n glueops-core-cert-manager).  "
  echo "3. Close splited termminal  "
+ read -n 1 -s -r -p "Press any key to start performing steps above "
+ captain_utils
  current_step=4
  save_state
 fi
@@ -356,26 +358,100 @@ if [[ $current_step -le 7 ]]; then
  yolo
  source /workspaces/glueops/$CLUSTER/.env
  if [ "$update" != "no" ]; then
-  cd /workspaces/glueops/$CLUSTER/manifests
-  echo -e "1. Move to https://github.com/GlueOps/terraform-module-cloud-multy-prerequisites. \n2. Select the required version (usually from branch). \n3. Move to https://github.com/internal-GlueOps/development-infrastructure/blob/main/tenants/$TENANT/tf/tenant.tf .\n4. Insert verison into the 2nd row of the code (after ref=).\n5. Save changes and manage them in Terraform."
-  read -n 1 -s -r -p " Press any key to continue if all actions above are completed successfully"
-  git pull
-  cd /workspaces/glueops/$CLUSTER
-  helm repo update
-  read -p "Enter ArgoCD version: " ArgoCDv
-  read -p "Enter helm-chart version: " Helmv
-  kubectl apply -k "https://github.com/argoproj/argo-cd/manifests/crds?ref=$ArgoCDv"
-  sleep 15
-  helm upgrade argocd argo/argo-cd --version $Helmv -f argocd.yaml -n glueops-core
-  echo -e "1. Move to ArgoCD (https://argocd.$CLUSTER/) and pay attention to the version on the left top near the logo after signing in. \n2. Split terminal , enter yolo , enter source /workspaces/glueops/$CLUSTER/.env , enter kubectl get pods -n glueops-core .\n3. Pods should be updated and no older than 5 mins "
-  read -n 1 -s -r -p " Press any key to continue if steps above are completed you closed splited terminal."
-  git pull
-  read -p "Enter glueops-platform version: " gpv
-  sleep 15
-  helm upgrade glueops-platform glueops-platform/glueops-platform --version $gpv -f platform.yaml --namespace=glueops-core
-  sleep 15
-  git pull
- fi
+   until [ "$updatetype" == "yes" ] || [ "$updatetype" == "no" ]; do
+      read -p "Is this EKS update? Type 'yes' or 'no': " updatetype
+
+      if [ "$updatetype" != "yes" ] && [ "$updatetype" != "no" ]; then
+       echo "Invalid input. Please enter 'yes' or 'no'."
+      fi
+   done
+   
+   cd /workspaces/glueops/$CLUSTER/manifests
+   echo -e "1. Move to https://github.com/GlueOps/terraform-module-cloud-multy-prerequisites/releases. \n2. Select the required version. \n3. Move to your tenant file. \n4. Insert verison into the 2nd row of the code (after ref=). \n5. Save changes and manage them in OpenTofu."
+   read -n 1 -s -r -p " Press any key to continue if all actions above are completed successfully"
+   git pull
+   cd /workspaces/glueops/$CLUSTER
+   read -n 1 -s -r -p " Please, update codespace version and start from this step if needed or just press any key to continue if there is no such a need"
+   
+   #ArgoCD update
+   until [ "$updateargo" == "yes" ] || [ "$updateargo" == "no" ]; do
+      read -p "Do you need to update ArgoCD? Type 'yes' or 'no': " updateargo
+
+      if [ "$updateargo" != "yes" ] && [ "$updateargo" != "no" ]; then
+       echo "Invalid input. Please enter 'yes' or 'no'."
+      fi
+   done
+   if [ "$updateargo" == "yes" ]; then
+     echo " Use captain_utils >> production >> ArgoCD >> approve changes (use kubectl get pods -n glueops-core command for monitoring in splitted terminal) "
+     read -n 1 -s -r -p " Please press any key if you are ready to start performing steps above. "
+     captain_utils
+     git pull
+   fi
+
+   #GlueOpsThePlatform update
+   until [ "$updatetheplatform" == "yes" ] || [ "$updatetheplatform" == "no" ]; do
+      read -p "Do you need to update the Platform? Type 'yes' or 'no': " updatetheplatform
+
+      if [ "$updatetheplatform" != "yes" ] && [ "$updatetheplatform" != "no" ]; then
+       echo "Invalid input. Please enter 'yes' or 'no'."
+      fi
+   done
+   if [ "$updatetheplatform" == "yes" ]; then
+     echo " Use captain_utils >> production >> ThePlatform >> approve changes "
+     read -n 1 -s -r -p " Please press any key if you are ready to start performing steps above. "
+     captain_utils
+     git pull
+   fi
+   
+   #Source version update
+   until [ "$updatesourcev" == "yes" ] || [ "$updatesourcev" == "no" ]; do
+      read -p "Do you need to update the source version? Type 'yes' or 'no': " updatesourcev
+
+      if [ "$updatesourcev" != "yes" ] && [ "$updatesourcev" != "no" ]; then
+       echo "Invalid input. Please enter 'yes' or 'no'."
+      fi
+   done
+   if [ "$updatesourcev" == "yes" ]; then
+     cd /workspaces/glueops
+     unset AWSEKS
+     read -p "Enter AWS/EKS version: " AWSEKS
+     curl https://raw.githubusercontent.com/GlueOps/terraform-module-cloud-aws-kubernetes-cluster/refs/tags/$AWSEKS/glueops-tests/main.tf -o qa-fullrun/AWS/templates/main.tf
+     cd /workspaces/glueops/$CLUSTER
+     source $(pwd)/.env
+     cd /workspaces/glueops/$CLUSTER/terraform/kubernetes
+     read -p "Enter arn:aws:iam number" value2
+     render_templates() {
+       local template_dir="$1"
+       local target_dir="$PWD"
+
+       # Create the target directory if it doesn't exist
+       mkdir -p "$target_dir"
+
+       # Loop through the template files in the template directory
+       for template_file in "$template_dir"/*; do
+         if [ -f "$template_file" ]; then
+           # Extract the filename without the path
+           template_filename=$(basename "$template_file")
+
+           # Replace the placeholder with the user-entered value and save it to the target directory
+           sed -e "s/761182885829/$value2/g" -e "s/\.\.\//git::https:\/\/github.com\/GlueOps\/terraform-module-cloud-aws-kubernetes-cluster.git?ref=$AWSEKS/g" "$template_file" > "$target_dir/$template_filename"
+         fi
+       done
+
+       echo "main.tf is successfully created in $target_dir."
+      }
+
+     # Call the function with the template and target directories
+     render_templates "../../../qa-fullrun/AWS/templates" 
+   fi
+   terraform init
+   terraform apply -auto-approve
+    
+
+
+
+   # To be continued
+    
  current_step=8
  save_state
 fi
