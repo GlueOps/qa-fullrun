@@ -412,43 +412,12 @@ if [[ $current_step -le 7 ]]; then
       fi
    done
    if [ "$updatesourcev" == "yes" ]; then
-     cd /workspaces/glueops
-     unset AWSEKS
-     read -p "Enter AWS/EKS version: " AWSEKS
-     curl https://raw.githubusercontent.com/GlueOps/terraform-module-cloud-aws-kubernetes-cluster/refs/tags/$AWSEKS/glueops-tests/main.tf -o qa-fullrun/AWS/templates/main.tf
-     cd /workspaces/glueops/$CLUSTER
-     source $(pwd)/.env
+     echo " Move to main.tf file in kubernetes folder >> change ref in the 2nd row to the proper one >> save the changes "
+     read -n 1 -s -r -p " Please press any key if the steps above are done and you are ready to continue "
      cd /workspaces/glueops/$CLUSTER/terraform/kubernetes
-     read -p "Enter arn:aws:iam number" value2
-     render_templates() {
-       local template_dir="$1"
-       local target_dir="$PWD"
-
-       # Create the target directory if it doesn't exist
-       mkdir -p "$target_dir"
-
-       # Loop through the template files in the template directory
-       for template_file in "$template_dir"/*; do
-         if [ -f "$template_file" ]; then
-           # Extract the filename without the path
-           template_filename=$(basename "$template_file")
-
-           # Replace the placeholder with the user-entered value and save it to the target directory
-           sed -e "s/761182885829/$value2/g" -e "s/\.\.\//git::https:\/\/github.com\/GlueOps\/terraform-module-cloud-aws-kubernetes-cluster.git?ref=$AWSEKS/g" "$template_file" > "$target_dir/$template_filename"
-         fi
-       done
-
-       echo "main.tf is successfully created in $target_dir."
-      }
-
-     # Call the function with the template and target directories
-     render_templates "../../../qa-fullrun/AWS/templates" 
+     terraform init
+     terraform apply
    fi
-   terraform init
-   terraform apply -auto-approve
-    
-
-
 
    # To be continued
     
