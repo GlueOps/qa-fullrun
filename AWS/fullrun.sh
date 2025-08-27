@@ -420,7 +420,7 @@ if [[ $current_step -le 7 ]]; then
    fi
 
    # With EKS Update
-   if [ "$updatetype" != "yes" ]; then
+   if [ "$updatetype" == "yes" ]; then
      # Kubernetes
      until [ "$updatekubernetes" == "yes" ] || [ "$updatekubernetes" == "no" ]; do
        read -p "Do you need to update kubernetes? Type 'yes' or 'no': " updatekubernetes
@@ -491,7 +491,48 @@ if [[ $current_step -le 7 ]]; then
      fi
    fi
 
-    
+   #Without EKS update
+   if [ "$updatetype" == "no" ]; then
+     # Addons
+     until [ "$updateaddons2" == "yes" ] || [ "$updateaddons2" == "no" ]; do
+       read -p "Do you need to update nodepools? Type 'yes' or 'no': " updateaddons2
+
+       if [ "$updateaddons2" != "yes" ] && [ "$updateaddons2" != "no" ]; then
+         echo "Invalid input. Please enter 'yes' or 'no'."
+       fi
+     done
+     if [ "$updateaddons2" == "yes" ]; then
+       echo " Captain_utils >> Production >> aws >> eks-addons "
+       read -n 1 -s -r -p " Please press any key to start performing steps above "
+       cd /workspaces/glueops/$CLUSTER
+       captain_utils
+       cd /workspaces/glueops/$CLUSTER/terraform/kubernetes
+       terraform apply -auto-approve
+     fi
+     # Nodepools
+     until [ "$updatenodepools2" == "yes" ] || [ "$updatenodepools2" == "no" ]; do
+       read -p "Do you need to update nodepools? Type 'yes' or 'no': " updatenodepools2
+
+       if [ "$updatenodepools2" != "yes" ] && [ "$updatenodepools2" != "no" ]; then
+         echo "Invalid input. Please enter 'yes' or 'no'."
+       fi
+     done
+     if [ "$updatenodepools2" == "yes" ]; then
+       echo " Captain_utils >> Production >> aws >> upgrade-eks-nodepools "
+       read -n 1 -s -r -p " Please press any key to start performing steps above "
+       cd /workspaces/glueops/$CLUSTER
+       captain_utils
+       cd /workspaces/glueops/$CLUSTER/terraform/kubernetes
+       terraform apply -auto-approve
+       kubectl get nodes -A
+       read -p "Indicate older nodes. Enter the ammount of time which is below the time of their existence to delete them: " nodestime3
+       cordon-drain-nodes-older-than-minutes -m $nodestime3
+       echo " Please remove old nodepools in the main.tf file (kubernetes folder) "
+       read -n 1 -s -r -p " Please press any key when the step above is done "
+       terraform apply -auto-approve
+     fi
+   fi
+ fi  
  current_step=8
  save_state
 fi
