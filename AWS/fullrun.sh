@@ -462,7 +462,7 @@ if [[ $current_step -le 7 ]]; then
      fi
      #Addons
      until [ "$updateaddons" == "yes" ] || [ "$updateaddons" == "no" ]; do
-       read -p "Do you need to update nodepools? Type 'yes' or 'no': " updateaddons
+       read -p "Do you need to update addons? Type 'yes' or 'no': " updateaddons
 
        if [ "$updateaddons" != "yes" ] && [ "$updateaddons" != "no" ]; then
          echo "Invalid input. Please enter 'yes' or 'no'."
