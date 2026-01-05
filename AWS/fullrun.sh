@@ -79,7 +79,9 @@ if [[ $current_step -le 2 ]]; then
  # 1st piece
  mkdir -p qa-fullrun/AWS/templates
  mkdir -p qa-fullrun/AWS/templates2
- curl https://raw.githubusercontent.com/GlueOps/terraform-module-cloud-aws-kubernetes-cluster/main/tests/main.tf -o qa-fullrun/AWS/templates/main.tf 
+ unset AWSEKS
+ read -p "Enter AWS/EKS version: " AWSEKS
+ curl https://raw.githubusercontent.com/GlueOps/terraform-module-cloud-aws-kubernetes-cluster/refs/tags/$AWSEKS/glueops-tests/main.tf -o qa-fullrun/AWS/templates/main.tf 
  cd /workspaces/glueops/$CLUSTER
  source $(pwd)/.env
  cd /workspaces/glueops/$CLUSTER/terraform/kubernetes
@@ -98,7 +100,7 @@ if [[ $current_step -le 2 ]]; then
        template_filename=$(basename "$template_file")
 
        # Replace the placeholder with the user-entered value and save it to the target directory
-       sed -e "s/761182885829/$value2/g" -e "s/\.\.\//git::https:\/\/github.com\/GlueOps\/terraform-module-cloud-aws-kubernetes-cluster.git/g" "$template_file" > "$target_dir/$template_filename"
+       sed -e "s/761182885829/$value2/g" -e "s/\.\.\//git::https:\/\/github.com\/GlueOps\/terraform-module-cloud-aws-kubernetes-cluster.git?ref=$AWSEKS/g" "$template_file" > "$target_dir/$template_filename"
      fi
    done
 
@@ -161,17 +163,14 @@ if [[ $current_step -le 2 ]]; then
 
  # 3d piece
 
- raw_link="https://raw.githubusercontent.com/wiki/GlueOps/terraform-module-cloud-aws-kubernetes-cluster/install-calico.md"
+ echo " Move to aws >> install calico "
+ read -n 1 -s -r -p "Press any key when you are ready to perform step above "
 
- commands=$(curl -s "$raw_link")
+ cd /workspaces/glueops/$CLUSTER
 
- commands=$(echo "$commands" | sed '1d;$d') 
+ captain_utils
 
- echo "$commands"
-
- bash -c "$commands"
-
- sed -i 's/#//' terraform/kubernetes/main.tf
+ sed -i 's/    #//g' terraform/kubernetes/main.tf
 
  cd /workspaces/glueops/$CLUSTER/terraform/kubernetes
 
@@ -188,9 +187,11 @@ if [[ $current_step -le 3 ]]; then
  yolo
  source /workspaces/glueops/$CLUSTER/.env
  cd /workspaces/glueops/$CLUSTER
- echo "1. Move to https://github.com/development-captains/$CLUSTER , find Deploying GlueOps the Platform >> Deploy ArgoCD , copy command , split the terminal , enter yolo, enter source /workspaces/glueops/$CLUSTER/.env , enter command in splited terminal , wait untill 3 of 3 argocd-redis-ha-server are ready , press ctrl + c (use kubectl get pods -n glueops-core command for monitoring).  "
- echo "2. Move back to https://github.com/development-captains/$CLUSTER , find Deploying GlueOps the Platform >> Deploy the GlueOps Platform , copy command , move back to splited terinal , enter command , wait untill all are sync (only one health status should be degraded ) , press ctrl + c (use kubectl get applications -n glueops-core for monitoring) ( if some of the apps are processing for long time then: 1. kubectl get certificates -A 2. kubectl delete pods --all -n glueops-core-cert-manager).  "
+ echo "1. Use captain_utils >> production >> ArgoCD >> approve changes >> split terinal, enter yolo in splited one , enter source /workspaces/glueops/$CLUSTER/.env, use kubectl get pods -n glueops-core command for monitoring whether 3 of 3 argocd-redis-ha-server are ready ( ready is the indicator to continue) "
+ echo "2. Move back to the terminal on the left > production >> GlueOpsPlatform >> approve changes >> move to terminal on the right >> use kubectl get applications -n glueops-core for monitoring. Only one app (secrets) should be degraded ( if some of the apps are processing for long time then: 1. kubectl get certificates -A 2. kubectl delete pods --all -n glueops-core-cert-manager).  "
  echo "3. Close splited termminal  "
+ read -n 1 -s -r -p "Press any key to start performing steps above "
+ captain_utils
  current_step=4
  save_state
 fi
@@ -225,12 +226,12 @@ if [[ $current_step -le 5 ]]; then
  cd /workspaces/glueops/$CLUSTER/manifests
 
 mkdir -p ../../qa-fullrun/AWS/manifeststemplates
-curl https://raw.githubusercontent.com/GlueOps/qa-tools/v20240827/manifests-ecr-protected-script/templates/appproject.yaml -o ../../qa-fullrun/AWS/manifeststemplates/appproject.yaml
-curl https://raw.githubusercontent.com/GlueOps/qa-tools/v20240827/manifests-ecr-protected-script/templates/appset.yaml -o ../../qa-fullrun/AWS/manifeststemplates/appset.yaml
-curl https://raw.githubusercontent.com/GlueOps/qa-tools/v20240827/manifests-ecr-protected-script/templates/dockerregistry.yaml -o ../../qa-fullrun/AWS/manifeststemplates/dockerregistry.yaml
-curl https://raw.githubusercontent.com/GlueOps/qa-tools/v20240827/manifests-ecr-protected-script/templates/ecr-regcred.yaml -o ../../qa-fullrun/AWS/manifeststemplates/ecr-regcred.yaml
-curl https://raw.githubusercontent.com/GlueOps/qa-tools/v20240827/manifests-ecr-protected-script/templates/namespace.yaml -o ../../qa-fullrun/AWS/manifeststemplates/namespace.yaml
-curl https://raw.githubusercontent.com/GlueOps/qa-tools/v20240827/manifests-ecr-protected-script/templates/pullrequestapplicationset.yaml -o ../../qa-fullrun/AWS/manifeststemplates/pullrequestapplicationset.yaml
+curl https://raw.githubusercontent.com/GlueOps/qa-tools/v20250930/manifests-ecr-protected-script/templates/appproject.yaml -o ../../qa-fullrun/AWS/manifeststemplates/appproject.yaml
+curl https://raw.githubusercontent.com/GlueOps/qa-tools/v20250930/manifests-ecr-protected-script/templates/appset.yaml -o ../../qa-fullrun/AWS/manifeststemplates/appset.yaml
+curl https://raw.githubusercontent.com/GlueOps/qa-tools/v20250930/manifests-ecr-protected-script/templates/dockerregistry.yaml -o ../../qa-fullrun/AWS/manifeststemplates/dockerregistry.yaml
+curl https://raw.githubusercontent.com/GlueOps/qa-tools/v20250930/manifests-ecr-protected-script/templates/ecr-regcred.yaml -o ../../qa-fullrun/AWS/manifeststemplates/ecr-regcred.yaml
+curl https://raw.githubusercontent.com/GlueOps/qa-tools/v20250930/manifests-ecr-protected-script/templates/namespace.yaml -o ../../qa-fullrun/AWS/manifeststemplates/namespace.yaml
+curl https://raw.githubusercontent.com/GlueOps/qa-tools/v20250930/manifests-ecr-protected-script/templates/pullrequestapplicationset.yaml -o ../../qa-fullrun/AWS/manifeststemplates/pullrequestapplicationset.yaml
 
 
  # Function to render templates
@@ -357,26 +358,181 @@ if [[ $current_step -le 7 ]]; then
  yolo
  source /workspaces/glueops/$CLUSTER/.env
  if [ "$update" != "no" ]; then
-  cd /workspaces/glueops/$CLUSTER/manifests
-  echo -e "1. Move to https://github.com/GlueOps/terraform-module-cloud-multy-prerequisites. \n2. Select the required version (usually from branch). \n3. Move to https://github.com/internal-GlueOps/development-infrastructure/blob/main/tenants/$TENANT/tf/tenant.tf .\n4. Insert verison into the 2nd row of the code (after ref=).\n5. Save changes and manage them in Terraform."
-  read -n 1 -s -r -p " Press any key to continue if all actions above are completed successfully"
-  git pull
-  cd /workspaces/glueops/$CLUSTER
-  helm repo update
-  read -p "Enter ArgoCD version: " ArgoCDv
-  read -p "Enter helm-chart version: " Helmv
-  kubectl apply -k "https://github.com/argoproj/argo-cd/manifests/crds?ref=$ArgoCDv"
-  sleep 15
-  helm upgrade argocd argo/argo-cd --version $Helmv -f argocd.yaml -n glueops-core
-  echo -e "1. Move to ArgoCD (https://argocd.$CLUSTER/) and pay attention to the version on the left top near the logo after signing in. \n2. Split terminal , enter yolo , enter source /workspaces/glueops/$CLUSTER/.env , enter kubectl get pods -n glueops-core .\n3. Pods should be updated and no older than 5 mins "
-  read -n 1 -s -r -p " Press any key to continue if steps above are completed you closed splited terminal."
-  git pull
-  read -p "Enter glueops-platform version: " gpv
-  sleep 15
-  helm upgrade glueops-platform glueops-platform/glueops-platform --version $gpv -f platform.yaml --namespace=glueops-core
-  sleep 15
-  git pull
- fi
+   until [ "$updatetype" == "yes" ] || [ "$updatetype" == "no" ]; do
+      read -p "Is this AWS/EKS update? Type 'yes' or 'no': " updatetype
+
+      if [ "$updatetype" != "yes" ] && [ "$updatetype" != "no" ]; then
+       echo "Invalid input. Please enter 'yes' or 'no'."
+      fi
+   done
+   
+   cd /workspaces/glueops/$CLUSTER/manifests
+   echo -e "1. Move to https://github.com/GlueOps/terraform-module-cloud-multy-prerequisites/releases. \n2. Select the required version. \n3. Move to your tenant file. \n4. Insert verison into the 2nd row of the code (after ref=). \n5. Save changes and manage them in OpenTofu."
+   read -n 1 -s -r -p " Press any key to continue if all actions above are completed successfully"
+   git pull
+   cd /workspaces/glueops/$CLUSTER
+   read -n 1 -s -r -p " Please, update codespace version and start from this step if needed or just press any key to continue if there is no such a need"
+   
+   #ArgoCD update
+   until [ "$updateargo" == "yes" ] || [ "$updateargo" == "no" ]; do
+      read -p "Do you need to update ArgoCD? Type 'yes' or 'no': " updateargo
+
+      if [ "$updateargo" != "yes" ] && [ "$updateargo" != "no" ]; then
+       echo "Invalid input. Please enter 'yes' or 'no'."
+      fi
+   done
+   if [ "$updateargo" == "yes" ]; then
+     echo " Use captain_utils >> production >> ArgoCD >> approve changes (use kubectl get pods -n glueops-core command for monitoring in splitted terminal) "
+     read -n 1 -s -r -p " Please press any key if you are ready to start performing steps above. "
+     captain_utils
+     git pull
+   fi
+
+   #GlueOpsThePlatform update
+   until [ "$updatetheplatform" == "yes" ] || [ "$updatetheplatform" == "no" ]; do
+      read -p "Do you need to update the Platform? Type 'yes' or 'no': " updatetheplatform
+
+      if [ "$updatetheplatform" != "yes" ] && [ "$updatetheplatform" != "no" ]; then
+       echo "Invalid input. Please enter 'yes' or 'no'."
+      fi
+   done
+   if [ "$updatetheplatform" == "yes" ]; then
+     echo " Use captain_utils >> production >> ThePlatform >> approve changes "
+     read -n 1 -s -r -p " Please press any key if you are ready to start performing steps above. "
+     captain_utils
+     git pull
+   fi
+   
+   #Source version update
+   until [ "$updatesourcev" == "yes" ] || [ "$updatesourcev" == "no" ]; do
+      read -p "Do you need to update the source version? Type 'yes' or 'no': " updatesourcev
+
+      if [ "$updatesourcev" != "yes" ] && [ "$updatesourcev" != "no" ]; then
+       echo "Invalid input. Please enter 'yes' or 'no'."
+      fi
+   done
+   if [ "$updatesourcev" == "yes" ]; then
+     echo " Move to main.tf file in kubernetes folder >> change ref in the 2nd row to the proper one >> save the changes "
+     read -n 1 -s -r -p " Please press any key if the steps above are done and you are ready to continue "
+     cd /workspaces/glueops/$CLUSTER/terraform/kubernetes
+     terraform init
+     terraform apply
+   fi
+
+   # With EKS Update
+   if [ "$updatetype" == "yes" ]; then
+     # Kubernetes
+     until [ "$updatekubernetes" == "yes" ] || [ "$updatekubernetes" == "no" ]; do
+       read -p "Do you need to update kubernetes? Type 'yes' or 'no': " updatekubernetes
+
+       if [ "$updatekubernetes" != "yes" ] && [ "$updatekubernetes" != "no" ]; then
+         echo "Invalid input. Please enter 'yes' or 'no'."
+       fi
+     done
+     if [ "$updatekubernetes" == "yes" ]; then
+       echo " Captain_utils >> Production >> aws >> upgrade-kubernetes "
+       read -n 1 -s -r -p " Please press any key to start performing steps above "
+       cd /workspaces/glueops/$CLUSTER
+       captain_utils
+       cd /workspaces/glueops/$CLUSTER/terraform/kubernetes
+       tofu apply -target="module.captain.module.kubernetes.aws_eks_cluster.default"
+     fi
+     
+     # Nodepools
+     until [ "$updatenodepools" == "yes" ] || [ "$updatenodepools" == "no" ]; do
+       read -p "Do you need to update nodepools? Type 'yes' or 'no': " updatenodepools
+
+       if [ "$updatenodepools" != "yes" ] && [ "$updatenodepools" != "no" ]; then
+         echo "Invalid input. Please enter 'yes' or 'no'."
+       fi
+     done
+     if [ "$updatenodepools" == "yes" ]; then
+       echo " Captain_utils >> Production >> aws >> upgrade-eks-nodepools "
+       read -n 1 -s -r -p " Please press any key to start performing steps above "
+       cd /workspaces/glueops/$CLUSTER
+       captain_utils
+       cd /workspaces/glueops/$CLUSTER/terraform/kubernetes
+       terraform apply -auto-approve
+       kubectl get nodes -A
+       read -p "Indicate older nodes. Enter the ammount of time which is below the time of their existence to delete them: " nodestime
+       cordon-drain-nodes-older-than-minutes -m $nodestime
+       echo " Please remove old nodepools in the main.tf file (kubernetes folder) "
+       read -n 1 -s -r -p " Please press any key when the step above is done "
+       terraform apply -auto-approve
+     fi
+     #Addons
+     until [ "$updateaddons" == "yes" ] || [ "$updateaddons" == "no" ]; do
+       read -p "Do you need to update addons? Type 'yes' or 'no': " updateaddons
+
+       if [ "$updateaddons" != "yes" ] && [ "$updateaddons" != "no" ]; then
+         echo "Invalid input. Please enter 'yes' or 'no'."
+       fi
+     done
+     if [ "$updateaddons" == "yes" ]; then
+       echo " Captain_utils >> Production >> aws >> eks-addons "
+       read -n 1 -s -r -p " Please press any key to start performing steps above "
+       cd /workspaces/glueops/$CLUSTER
+       captain_utils
+       cd /workspaces/glueops/$CLUSTER/terraform/kubernetes
+       terraform apply -auto-approve
+       # Creating new nodepools again to verify
+       cd /workspaces/glueops/$CLUSTER/
+       echo " Captain_utils >> Production >> aws >> upgrade-eks-nodepools "
+       read -n 1 -s -r -p " Please press any key to start performing steps above "
+       captain_utils
+       cd /workspaces/glueops/$CLUSTER/terraform/kubernetes
+       terraform apply -auto-approve
+       kubectl get nodes -A
+       read -p "Indicate older nodes. Enter the ammount of time which is below the time of their existence to delete them: " nodestime2
+       cordon-drain-nodes-older-than-minutes -m $nodestime2
+       echo " Please remove old nodepools in the main.tf file (kubernetes folder) "
+       read -n 1 -s -r -p " Please press any key when the step above is done "
+       terraform apply -auto-approve
+     fi
+   fi
+
+   #Without EKS update
+   if [ "$updatetype" == "no" ]; then
+     # Addons
+     until [ "$updateaddons2" == "yes" ] || [ "$updateaddons2" == "no" ]; do
+       read -p "Do you need to update nodepools? Type 'yes' or 'no': " updateaddons2
+
+       if [ "$updateaddons2" != "yes" ] && [ "$updateaddons2" != "no" ]; then
+         echo "Invalid input. Please enter 'yes' or 'no'."
+       fi
+     done
+     if [ "$updateaddons2" == "yes" ]; then
+       echo " Captain_utils >> Production >> aws >> eks-addons "
+       read -n 1 -s -r -p " Please press any key to start performing steps above "
+       cd /workspaces/glueops/$CLUSTER
+       captain_utils
+       cd /workspaces/glueops/$CLUSTER/terraform/kubernetes
+       terraform apply -auto-approve
+     fi
+     # Nodepools
+     until [ "$updatenodepools2" == "yes" ] || [ "$updatenodepools2" == "no" ]; do
+       read -p "Do you need to update nodepools? Type 'yes' or 'no': " updatenodepools2
+
+       if [ "$updatenodepools2" != "yes" ] && [ "$updatenodepools2" != "no" ]; then
+         echo "Invalid input. Please enter 'yes' or 'no'."
+       fi
+     done
+     if [ "$updatenodepools2" == "yes" ]; then
+       echo " Captain_utils >> Production >> aws >> upgrade-eks-nodepools "
+       read -n 1 -s -r -p " Please press any key to start performing steps above "
+       cd /workspaces/glueops/$CLUSTER
+       captain_utils
+       cd /workspaces/glueops/$CLUSTER/terraform/kubernetes
+       terraform apply -auto-approve
+       kubectl get nodes -A
+       read -p "Indicate older nodes. Enter the ammount of time which is below the time of their existence to delete them: " nodestime3
+       cordon-drain-nodes-older-than-minutes -m $nodestime3
+       echo " Please remove old nodepools in the main.tf file (kubernetes folder) "
+       read -n 1 -s -r -p " Please press any key when the step above is done "
+       terraform apply -auto-approve
+     fi
+   fi
+ fi  
  current_step=8
  save_state
 fi
